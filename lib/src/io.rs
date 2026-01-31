@@ -248,7 +248,8 @@ mod test {
     fn test_write_int_size_string() {
         let mut out: Vec<u8> = Vec::with_capacity(16);
         write_int_size_string(&mut out, "%ARTIST%");
-        let expected_result: Vec<u8> = vec![0x09,0x00,0x00,0x00,   0x08,0x25,0x41,0x52,0x54,0x49,0x53,0x54,0x25];
+        // int_size_string = int(length+1), then string bytes (no byte length)
+        let expected_result: Vec<u8> = vec![0x09,0x00,0x00,0x00,   0x25,0x41,0x52,0x54,0x49,0x53,0x54,0x25];
         assert_eq!(out, expected_result);
     }
     #[test]

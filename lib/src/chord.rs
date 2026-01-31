@@ -77,6 +77,7 @@ impl PitchClass {
         if sharp.is_none() { p.sharp = p.accidental >= 0; }
         p
     }
+    #[allow(dead_code)]
     pub(crate) fn from_note(note: String) -> PitchClass {
         let mut p = PitchClass {note, just:0, accidental:0, value:-1, sharp: true,};
         if p.note.ends_with('b')      {p.accidental = -1; p.sharp = false;}
@@ -116,7 +117,7 @@ impl Song {
     /// - Name: `int-byte-size-string`. Name of the chord, e.g. *Em*.
     /// - First fret: `int`. The fret from which the chord is displayed in chord editor.
     /// - List of frets: 6 `ints`. Frets are listed in order: fret on the string 1, fret on the string 2, ..., fret on the
-    /// string 6. If string is untouched then the values of fret is *-1*.
+    ///   string 6. If string is untouched then the values of fret is *-1*.
     fn read_old_format_chord(&self, data: &[u8], seek: &mut usize, chord: &mut Chord) {
         chord.name = read_int_size_string(data, seek);
         chord.first_fret = Some(read_int(data, seek).to_u8().unwrap());

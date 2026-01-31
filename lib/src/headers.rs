@@ -157,7 +157,7 @@ impl Song {
     ///
     /// Each of these elements is present only if the corresponding bit is a 1. The different elements are written (if they are present) from lowest to highest bit.  
     /// Exceptions are made for the double bar and the beginning of repeat whose sole presence is enough, complementary data is not necessary.
-
+    ///
     /// * **Numerator of the (key) signature**: `byte`. Numerator of the (key) signature of the piece
     /// * **Denominator of the (key) signature**: `byte`. Denominator of the (key) signature of the piece
     /// * **End of repeat**: `byte`. Number of repeats until the previous Beginning of repeat. Nombre de renvoi jusqu'au début de renvoi précédent.

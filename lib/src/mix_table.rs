@@ -13,6 +13,7 @@ pub struct MixTableItem {
 }
 //impl Default for MixTableItem { fn default() -> Self { MixTableItem { value: 0, duration: 0, all_tracks: false }}}
 
+#[allow(dead_code)]
 const WAH_EFFECT_OFF:  i8 = -2;
 const WAH_EFFECT_NONE: i8 = -1;
 #[derive(Debug,Clone,PartialEq,Eq)]
@@ -25,7 +26,7 @@ impl WahEffect {
     pub(crate) fn _check_value(value: i8) {
         if !(WAH_EFFECT_OFF..=100).contains(&value) {panic!("Value for a wah effect must be in range from -2 to 100")}
     }
-    pub(crate) fn _is_on(&self) -> bool {self.value <= 0 && self.value <= 100}
+    pub(crate) fn _is_on(&self) -> bool {self.value >= 0 && self.value <= 100}
     pub(crate) fn _is_off(&self) -> bool {self.value == WAH_EFFECT_OFF}
     pub(crate) fn _is_none(&self) -> bool {self.value == WAH_EFFECT_NONE}
 }
@@ -128,18 +129,16 @@ impl Song {
     /// 
     /// If tempo did change, then one :ref:`bool` is read. If it's true, then tempo change won't be displayed on the score.
     fn read_mix_table_change_durations(&self, data: &[u8], seek: &mut usize, mtc: &mut MixTableChange) {
-        if mtc.volume.is_some()  {mtc.volume.take().unwrap().duration  = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.balance.is_some() {mtc.balance.take().unwrap().duration = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.chorus.is_some()  {mtc.chorus.take().unwrap().duration  = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.reverb.is_some()  {mtc.reverb.take().unwrap().duration  = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.phaser.is_some()  {mtc.phaser.take().unwrap().duration  = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.tremolo.is_some() {mtc.tremolo.take().unwrap().duration = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.tempo.is_some()   {
-            let mut t = mtc.tempo.take().unwrap();
-            t.duration = read_signed_byte(data, seek).to_u8().unwrap();
-            mtc.tempo = Some(t);
+        if let Some(ref mut item) = mtc.volume  { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
+        if let Some(ref mut item) = mtc.balance { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
+        if let Some(ref mut item) = mtc.chorus  { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
+        if let Some(ref mut item) = mtc.reverb  { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
+        if let Some(ref mut item) = mtc.phaser  { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
+        if let Some(ref mut item) = mtc.tremolo { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
+        if let Some(ref mut item) = mtc.tempo {
+            item.duration = read_signed_byte(data, seek).to_u8().unwrap();
             mtc.hide_tempo = false;
-            if self.version.number >= (5,0,0) {mtc.hide_tempo = read_bool(data, seek);}
+            if self.version.number >= (5,0,0) { mtc.hide_tempo = read_bool(data, seek); }
         }
     }
 
