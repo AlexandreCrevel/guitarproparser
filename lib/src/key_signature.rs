@@ -118,7 +118,7 @@ pub(crate) fn read_duration(data: &[u8], seek: &mut usize, flags: u8) -> Duratio
     //println!("read_duration()");
     let b = read_signed_byte(data, seek);
     let shift = b + 2;
-    let val = if shift >= 0 && shift < 16 { 1u16 << shift } else { 1u16 }; // Fallback to 1 (whole note?) or whatever safe
+    let val = if (0..16).contains(&shift) { 1u16 << shift } else { 1u16 }; // Fallback to 1 (whole note?) or whatever safe
     let mut d = Duration{value: val, ..Default::default()};
     //let b = read_signed_byte(data, seek); println!("B: {}", b); d.value = 1 << (b + 2);
     d.dotted = (flags & 0x01) == 0x01;
