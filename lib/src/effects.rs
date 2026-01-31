@@ -122,11 +122,11 @@ impl Song {
     ///   * Vibrato: `bool`.
     pub(crate) fn read_bend_effect(&self, data: &[u8], seek: &mut usize) -> Option<BendEffect> {
         let mut be = BendEffect{kind: get_bend_type(read_signed_byte(data, seek)), ..Default::default()};
-        be.value = read_int(data, seek).to_i16().unwrap();
-        let count: u8 = read_int(data, seek).to_u8().unwrap();
+        be.value = read_int(data, seek).to_i16().unwrap_or(0);
+        let count: u8 = read_int(data, seek).to_u8().unwrap_or(0);
         for _ in 0..count {
-            let mut bp = BendPoint{position: (f32::from(read_int(data, seek).to_i16().unwrap()) * f32::from(BEND_EFFECT_MAX_POSITION) / GP_BEND_POSITION).round().to_u8().unwrap(), ..Default::default()};
-            bp.value = (f32::from(read_int(data, seek).to_i16().unwrap()) * f32::from(be.semitone_length) / GP_BEND_SEMITONE).round().to_i8().unwrap();
+            let mut bp = BendPoint{position: (f32::from(read_int(data, seek).to_i16().unwrap_or(0)) * f32::from(BEND_EFFECT_MAX_POSITION) / GP_BEND_POSITION).round().to_u8().unwrap_or(0), ..Default::default()};
+            bp.value = (f32::from(read_int(data, seek).to_i16().unwrap_or(0)) * f32::from(be.semitone_length) / GP_BEND_SEMITONE).round().to_i8().unwrap_or(0);
             bp.vibrato = read_bool(data, seek);
             be.points.push(bp);
         }

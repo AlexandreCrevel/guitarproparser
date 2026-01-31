@@ -58,7 +58,8 @@ impl Default for MeasureHeader {
     }}
 }
 impl MeasureHeader {
-    pub(crate) fn length(&self) -> i64 {self.time_signature.numerator.to_i64().unwrap() * self.time_signature.denominator.time().to_i64().unwrap()}
+    #[allow(dead_code)]
+    pub(crate) fn length(&self) -> i64 {self.time_signature.numerator.to_i64().unwrap() * crate::key_signature::DURATION_QUARTER_TIME * 4 / self.time_signature.denominator.value.to_i64().unwrap()}
     pub(crate) fn _end(&self) -> i64 {self.start + self.length()}
 }
 

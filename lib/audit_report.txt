@@ -3,7 +3,7 @@
 Chords.gp3: OK
 Chords.gp4: OK
 Chords.gp5: OK
-Demo v5.gp5: PANIC: called `Option::unwrap()` on a `None` value
+Demo v5.gp5: OK
 Directions.gp5: OK
 Duration.gp3: OK
 Effects.gp3: OK

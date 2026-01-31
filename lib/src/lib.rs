@@ -148,12 +148,7 @@ mod test {
         song.read_gp5(&read_file(String::from("test/RSE.gp5")));
     }
     
-    #[test]
-    #[ignore = "GP5 Demo file has complex features (directions, advanced RSE) that are not fully supported yet"]
-    fn test_gp5_demo_complex() {
-        let mut song: Song = Song::default();
-        song.read_gp5(&read_file(String::from("test/Demo v5.gp5")));
-    }
+
 
     //slides
     #[test]

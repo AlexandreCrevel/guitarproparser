@@ -8,7 +8,7 @@ use encoding_rs::*;
 /// * `seek` - start position to read
 /// * returns the read byte as u8
 pub(crate) fn read_byte(data: &[u8], seek: &mut usize ) -> u8 {
-    if data.len() < *seek {panic!("End of file reached");}
+    if *seek >= data.len() {panic!("End of file reached");}
     let b = data[*seek];
     *seek += 1;
     b
@@ -19,7 +19,7 @@ pub(crate) fn read_byte(data: &[u8], seek: &mut usize ) -> u8 {
 /// * `seek` - start position to read
 /// * returns the read byte as u8
 pub(crate) fn read_signed_byte(data: &[u8], seek: &mut usize ) -> i8 {
-    if data.len() < *seek {panic!("End of file reached");}
+    if *seek >= data.len() {panic!("End of file reached");}
     let b = data[*seek] as i8;
     *seek += 1;
     b
@@ -30,7 +30,7 @@ pub(crate) fn read_signed_byte(data: &[u8], seek: &mut usize ) -> i8 {
 /// * `seek` - start position to read
 /// * returns boolean value
 pub(crate) fn read_bool(data: &[u8], seek: &mut usize ) -> bool {
-    if data.len() < *seek {panic!("End of file reached");}
+    if *seek >= data.len() {panic!("End of file reached");}
     let b = data[*seek];
     *seek += 1;
     b != 0
@@ -41,7 +41,7 @@ pub(crate) fn read_bool(data: &[u8], seek: &mut usize ) -> bool {
 /// * `seek` - start position to read
 /// * returns the short value
 pub(crate) fn read_short(data: &[u8], seek: &mut usize ) -> i16 {
-    if data.len() < *seek + 2 {panic!("End of file reached");}
+    if *seek + 2 > data.len() {panic!("End of file reached");}
     let n = i16::from_le_bytes([data[*seek], data[*seek+1]]);
     *seek += 2;
     n
@@ -52,7 +52,7 @@ pub(crate) fn read_short(data: &[u8], seek: &mut usize ) -> i16 {
 /// * `seek` - start position to read
 /// * returns the integer value
 pub(crate) fn read_int(data: &[u8], seek: &mut usize ) -> i32 {
-    if data.len() < *seek + 4 {panic!("End of file reached");}
+    if *seek + 4 > data.len() {panic!("End of file reached");}
     let n = i32::from_le_bytes([data[*seek], data[*seek+1], data[*seek+2], data[*seek+3]]);
     *seek += 4;
     n

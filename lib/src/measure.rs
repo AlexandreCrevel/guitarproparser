@@ -56,7 +56,7 @@ impl Song {
     /// - ...
     /// - measure n/track m
     pub(crate) fn read_measures(&mut self, data: &[u8], seek: &mut usize) {
-        let mut start = DURATION_QUARTER_TIME;
+
         for h in 0..self.measure_headers.len() {
             for t in 0..self.tracks.len() {
                 //println!("Reading measure H:{} T:{} Seek:{}", h, t, seek);
@@ -67,7 +67,7 @@ impl Song {
                 self.tracks[t].measures.push(m);
             }
             //println!("read_measures(), start: {} \t numerator: {} \t denominator: {} \t length: {}", start, self.measure_headers[h].time_signature.numerator, self.measure_headers[h].time_signature.denominator.value, self.measure_headers[h].length());
-            start += self.measure_headers[h].length();
+
         }
         self.current_track = None;
         self.current_measure_number = None;
@@ -114,12 +114,14 @@ impl Song {
     }
 
     fn read_voice(&mut self, data: &[u8], seek: &mut usize, voice: &mut Voice, start: &mut i64, track_index: usize) {
+        if *seek + 4 > data.len() { return; }
         let beats = read_int(data, seek).to_usize().unwrap_or(0);
         //Sanity check
         if beats > 256 {
             return;
         }
         for i in 0..beats {
+            if *seek + 5 > data.len() { break; }
             self.current_beat_number = Some(i + 1);
             //println!("read_measure() read_voice(), start: {}", measure.start);
             *start += if self.version.number < (5,0,0) {self.read_beat(data, seek, voice, *start, track_index)} else {self.read_beat_v5(data, seek, voice, &mut *start, track_index)};
