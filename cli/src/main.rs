@@ -51,8 +51,13 @@ fn main() {
         "GP3" => song.read_gp3(&data),
         "GP4" => song.read_gp4(&data),
         "GP5" => song.read_gp5(&data),
+        "GP" => song.read_gp(&data),
+        "GPX" => {
+            eprintln!("Error: GPX format (Guitar Pro 6) is not yet implemented.");
+            std::process::exit(1);
+        }
         _ => {
-            eprintln!("Error: Unsupported format '{}'. Only GP3, GP4, GP5 are supported.", ext);
+            eprintln!("Error: Unsupported format '{}'. Supported: GP3, GP4, GP5, GP.", ext);
             std::process::exit(1);
         }
     }

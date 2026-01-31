@@ -14,10 +14,11 @@ impl Song {
         self.artist = gpif.score.artist.clone();
         self.album = gpif.score.album.clone();
         self.words = gpif.score.words.clone();
-        self.author = gpif.score.words.clone(); // Words -> Author?
-        self.writer = gpif.score.music.clone(); // Music -> Writer?
+        self.author = gpif.score.music.clone();
+        self.writer = gpif.score.music.clone();
+        self.transcriber = gpif.score.tabber.clone();
         self.copyright = gpif.score.copyright.clone();
-        self.comments = gpif.score.instructions.clone(); // Instructions -> Comments? Or Notices?
+        self.comments = gpif.score.instructions.clone();
 
         // 2. Measure Headers (MasterBars)
         self.measure_headers.clear();

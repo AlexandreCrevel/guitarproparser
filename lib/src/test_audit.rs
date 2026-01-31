@@ -2,10 +2,6 @@ use crate::gp::Song;
 use std::fs;
 use std::path::Path;
 
-fn read_file(path: &Path) -> Vec<u8> {
-    fs::read(path).expect("Cannot open file")
-}
-
 #[test]
 fn test_audit_all_files() {
     let test_dir = Path::new("../test");

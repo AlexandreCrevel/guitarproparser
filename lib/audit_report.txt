@@ -1,38 +1,38 @@
-001_Funky_Guy.gp5: PANIC: index out of bounds: the len is 2230 but the index is 2230
+001_Funky_Guy.gp5: OK
 2 whole bars.tmp: SKIP
-Chords.gp3: PANIC: called `Option::unwrap()` on a `None` value
-Chords.gp4: PANIC: called `Option::unwrap()` on a `None` value
+Chords.gp3: OK
+Chords.gp4: OK
 Chords.gp5: OK
-Demo v5.gp5: PANIC: Cannot read chord fifth (new format)
-Directions.gp5: PANIC: index out of bounds: the len is 1940 but the index is 1940
+Demo v5.gp5: PANIC: called `Option::unwrap()` on a `None` value
+Directions.gp5: OK
 Duration.gp3: OK
-Effects.gp3: PANIC: called `Option::unwrap()` on a `None` value
-Effects.gp4: PANIC: called `Option::unwrap()` on a `None` value
-Effects.gp5: PANIC: Cannot read bend type
-Harmonics.gp3: PANIC: index out of bounds: the len is 1008 but the index is 1008
-Harmonics.gp4: PANIC: called `Option::unwrap()` on a `None` value
-Harmonics.gp5: PANIC: End of file reached
+Effects.gp3: OK
+Effects.gp4: OK
+Effects.gp5: OK
+Harmonics.gp3: OK
+Harmonics.gp4: OK
+Harmonics.gp5: OK
 Key.gp4: OK
 Key.gp5: OK
-No Wah.gp5: PANIC: End of file reached
-RSE.gp5: PANIC: End of file reached
+No Wah.gp5: OK
+RSE.gp5: OK
 Repeat.gp4: OK
-Repeat.gp5: PANIC: index out of bounds: the len is 1645 but the index is 1645
-Slides.gp4: PANIC: called `Option::unwrap()` on a `None` value
+Repeat.gp5: OK
+Slides.gp4: OK
 Slides.gp5: OK
-Strokes.gp4: PANIC: called `Option::unwrap()` on a `None` value
-Strokes.gp5: PANIC: called `Option::unwrap()` on a `None` value
+Strokes.gp4: OK
+Strokes.gp5: OK
 Unknown Chord Extension.gp5: OK
-Unknown-m.gp5: PANIC: called `Option::unwrap()` on a `None` value
-Unknown.gp5: PANIC: called `Option::unwrap()` on a `None` value
+Unknown-m.gp5: OK
+Unknown.gp5: OK
 Vibrato.gp4: OK
-Voices.gp5: PANIC: called `Option::unwrap()` on a `None` value
-Wah-m.gp5: PANIC: Cannot read bend type
-Wah.gp5: PANIC: Cannot read bend type
+Voices.gp5: OK
+Wah-m.gp5: OK
+Wah.gp5: OK
 accent.gp: OK
 accent.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 all-percussion.gp: OK
-all-percussion.gp5: PANIC: Cannot read slap effect for the beat effects
+all-percussion.gp5: OK
 all-percussion.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 arpeggio.gp: OK
 arpeggio.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
@@ -44,29 +44,29 @@ basic-bend.gp: OK
 basic-bend.gp5: OK
 basic-bend.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 beams-stems-ledger-lines.gp: OK
-beams-stems-ledger-lines.gp5: PANIC: attempt to add with overflow
+beams-stems-ledger-lines.gp5: OK
 beams-stems-ledger-lines.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 bend.gp: OK
-bend.gp3: PANIC: called `Option::unwrap()` on a `None` value
+bend.gp3: OK
 bend.gp4: OK
 bend.gp5: OK
 bend.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 brush.gp: OK
-brush.gp4: PANIC: called `Option::unwrap()` on a `None` value
+brush.gp4: OK
 brush.gp5: OK
 brush.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 capo-fret.gp3: OK
 capo-fret.gp4: OK
-capo-fret.gp5: PANIC: End of file reached
-chord_without_notes.gp5: PANIC: index out of bounds: the len is 1593 but the index is 1593
+capo-fret.gp5: OK
+chord_without_notes.gp5: OK
 chordnames_keyboard.gp: OK
 chordnames_keyboard.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 clefs.gp: OK
 clefs.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 copyright.gp: OK
-copyright.gp3: PANIC: index out of bounds: the len is 1011 but the index is 1011
-copyright.gp4: PANIC: index out of bounds: the len is 1062 but the index is 1062
-copyright.gp5: PANIC: index out of bounds: the len is 1496 but the index is 1496
+copyright.gp3: OK
+copyright.gp4: OK
+copyright.gp5: OK
 copyright.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 crescendo-diminuendo.gp: OK
 crescendo-diminuendo.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
@@ -75,7 +75,7 @@ dead-note.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please u
 directions.gp: OK
 directions.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 dotted-gliss.gp: OK
-dotted-gliss.gp3: PANIC: End of file reached
+dotted-gliss.gp3: OK
 dotted-gliss.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 dotted-tuplets.gp: OK
 dotted-tuplets.gp5: OK
@@ -83,17 +83,17 @@ dotted-tuplets.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Ple
 double-bar.gp: OK
 double-bar.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 dynamic.gp: OK
-dynamic.gp5: PANIC: index out of bounds: the len is 1534 but the index is 1534
+dynamic.gp5: OK
 dynamic.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 fade-in.gp: OK
-fade-in.gp4: PANIC: index out of bounds: the len is 1033 but the index is 1033
-fade-in.gp5: PANIC: index out of bounds: the len is 1511 but the index is 1511
+fade-in.gp4: OK
+fade-in.gp5: OK
 fade-in.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 fermata.gp: OK
 fermata.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 fingering.gp: OK
 fingering.gp4: OK
-fingering.gp5: PANIC: called `Option::unwrap()` on a `None` value
+fingering.gp5: OK
 fingering.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 free-time.gp: OK
 free-time.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
@@ -103,10 +103,10 @@ fret-diagram.gp5: OK
 fret-diagram.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 fret-diagram_2instruments.gp: PANIC: Error reading GP file: XML Parse error: invalid digit found in string
 fret-diagram_2instruments.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
-gamma_ray-heading_for_tomorrow.gp3: PANIC: called `Option::unwrap()` on a `None` value
+gamma_ray-heading_for_tomorrow.gp3: OK
 ghost-note.gp: OK
 ghost-note.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
-ghost_note.gp3: PANIC: called `Option::unwrap()` on a `None` value
+ghost_note.gp3: OK
 grace-before-beat.gp: OK
 grace-before-beat.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 grace-on-beat.gp: OK
@@ -115,24 +115,24 @@ grace.gp: OK
 grace.gp5: OK
 grace.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 heavy-accent.gp: OK
-heavy-accent.gp5: PANIC: End of file reached
+heavy-accent.gp5: OK
 heavy-accent.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 high-pitch.gp: OK
-high-pitch.gp3: PANIC: called `Option::unwrap()` on a `None` value
+high-pitch.gp3: OK
 high-pitch.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
-iron-maiden-doctor_doctor.gp5: PANIC: called `Option::unwrap()` on a `None` value
+iron-maiden-doctor_doctor.gp5: OK
 keysig.gp: OK
 keysig.gp4: OK
-keysig.gp5: PANIC: End of file reached
+keysig.gp5: OK
 keysig.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
-led-zeppelin-babe_i_m_gonna_leave_you.gp4: PANIC: called `Option::unwrap()` on a `None` value
+led-zeppelin-babe_i_m_gonna_leave_you.gp4: OK
 legato-slide.gp: OK
-legato-slide.gp4: PANIC: End of file reached
+legato-slide.gp4: OK
 legato-slide.gp5: OK
 legato-slide.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 let-ring.gp: OK
-let-ring.gp4: PANIC: index out of bounds: the len is 1042 but the index is 1042
-let-ring.gp5: PANIC: index out of bounds: the len is 1501 but the index is 1501
+let-ring.gp4: OK
+let-ring.gp5: OK
 let-ring.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 mordents.gp: OK
 mordents.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
@@ -149,12 +149,12 @@ ottava4.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use
 ottava5.gp: PANIC: Error reading GP file: XML Parse error: invalid digit found in string
 ottava5.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 palm-mute.gp: OK
-palm-mute.gp4: PANIC: index out of bounds: the len is 1042 but the index is 1042
-palm-mute.gp5: PANIC: index out of bounds: the len is 1501 but the index is 1501
+palm-mute.gp4: OK
+palm-mute.gp5: OK
 palm-mute.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 pick-up-down.gp: OK
-pick-up-down.gp4: PANIC: index out of bounds: the len is 1046 but the index is 1046
-pick-up-down.gp5: PANIC: index out of bounds: the len is 1499 but the index is 1499
+pick-up-down.gp4: OK
+pick-up-down.gp5: OK
 pick-up-down.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 rasg.gp: OK
 rasg.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
@@ -164,36 +164,36 @@ repeats.gp: OK
 repeats.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 rest-centered.gp: OK
 rest-centered.gp4: OK
-rest-centered.gp5: PANIC: index out of bounds: the len is 1519 but the index is 1519
+rest-centered.gp5: OK
 rest-centered.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 sforzato.gp: OK
-sforzato.gp4: PANIC: index out of bounds: the len is 1043 but the index is 1043
+sforzato.gp4: OK
 sforzato.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 shift-slide.gp: OK
-shift-slide.gp4: PANIC: End of file reached
+shift-slide.gp4: OK
 shift-slide.gp5: OK
 shift-slide.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 slide-in-above.gp: OK
-slide-in-above.gp4: PANIC: called `Option::unwrap()` on a `None` value
-slide-in-above.gp5: PANIC: index out of bounds: the len is 1531 but the index is 1531
+slide-in-above.gp4: OK
+slide-in-above.gp5: OK
 slide-in-above.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 slide-in-below.gp: OK
-slide-in-below.gp4: PANIC: index out of bounds: the len is 1052 but the index is 1052
-slide-in-below.gp5: PANIC: index out of bounds: the len is 1531 but the index is 1531
+slide-in-below.gp4: OK
+slide-in-below.gp5: OK
 slide-in-below.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 slide-out-down.gp: OK
-slide-out-down.gp4: PANIC: index out of bounds: the len is 1052 but the index is 1052
-slide-out-down.gp5: PANIC: index out of bounds: the len is 1531 but the index is 1531
+slide-out-down.gp4: OK
+slide-out-down.gp5: OK
 slide-out-down.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 slide-out-up.gp: OK
-slide-out-up.gp4: PANIC: called `Option::unwrap()` on a `None` value
-slide-out-up.gp5: PANIC: range end index 1615 out of range for slice of length 1556
+slide-out-up.gp4: OK
+slide-out-up.gp5: OK
 slide-out-up.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 slur-notes-effect-mask.gp: OK
-slur-notes-effect-mask.gp5: PANIC: End of file reached
+slur-notes-effect-mask.gp5: OK
 slur-notes-effect-mask.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 slur.gp: OK
-slur.gp4: PANIC: index out of bounds: the len is 1039 but the index is 1039
+slur.gp4: OK
 slur.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 slur_hammer_slur.gp: OK
 slur_hammer_slur.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
@@ -204,7 +204,7 @@ slur_slur_hammer.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. P
 slur_voices.gp: OK
 slur_voices.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 tap-slap-pop.gp: OK
-tap-slap-pop.gp5: PANIC: End of file reached
+tap-slap-pop.gp5: OK
 tempo.gp: OK
 tempo.gp3: OK
 tempo.gp4: OK
@@ -213,33 +213,33 @@ tempo.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .
 test.gp: OK
 test.gp5: OK
 testIrrTuplet.gp: OK
-testIrrTuplet.gp4: PANIC: called `Option::unwrap()` on a `None` value
+testIrrTuplet.gp4: OK
 testIrrTuplet.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 text.gp: OK
 text.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
-the-beatles-let_it_be.gp3: PANIC: called `Option::unwrap()` on a `None` value
+the-beatles-let_it_be.gp3: OK
 timer.gp: OK
 timer.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 tremolo-bar.gp: OK
 tremolos.gp: OK
-tremolos.gp5: PANIC: index out of bounds: the len is 1455 but the index is 1455
+tremolos.gp5: OK
 tremolos.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 trill.gp: OK
-trill.gp4: PANIC: index out of bounds: the len is 1038 but the index is 1038
+trill.gp4: OK
 trill.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 tuplet-with-slur.gp: OK
-tuplet-with-slur.gp4: PANIC: called `Option::unwrap()` on a `None` value
+tuplet-with-slur.gp4: OK
 tuplet-with-slur.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 tuplets.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 tuplets2.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 turn.gp: OK
 turn.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 vibrato.gp: OK
-vibrato.gp5: PANIC: index out of bounds: the len is 1558 but the index is 1558
+vibrato.gp5: OK
 vibrato.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 volta.gp: OK
 volta.gp3: OK
-volta.gp4: PANIC: End of file reached
+volta.gp4: OK
 volta.gp5: OK
 volta.gpx: PANIC: GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.
 volume-swell.gp: OK

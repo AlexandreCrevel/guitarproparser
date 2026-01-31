@@ -17,7 +17,8 @@ pub mod beat;
 pub mod gpif;
 pub mod gpif_import;
 pub mod gpx_read;
-pub mod test_audit;
+#[cfg(test)]
+mod test_audit;
 
 #[cfg(test)]
 mod test {
