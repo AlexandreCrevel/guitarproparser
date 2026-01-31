@@ -114,13 +114,11 @@ impl Duration {
 /// * *3*: thirty-second note
 /// 
 /// If flag at *0x20* is true, the tuplet is read
-pub(crate) fn read_duration(data: &[u8], seek: &mut usize, flags: u8) -> Duration {
-    //println!("read_duration()");
-    let mut d = Duration{value: 1 << (read_signed_byte(data, seek) + 2), ..Default::default()};
-    //let b = read_signed_byte(data, seek); println!("B: {}", b); d.value = 1 << (b + 2);
+pub(crate) fn read_duration(data: &[u8], seek: &mut usize, flags: u8) -> GpResult<Duration> {
+    let mut d = Duration{value: 1 << (read_signed_byte(data, seek)? + 2), ..Default::default()};
     d.dotted = (flags & 0x01) == 0x01;
     if (flags & 0x20) == 0x20 {
-        let i_tuplet = read_int(data, seek);
+        let i_tuplet = read_int(data, seek)?;
         if i_tuplet == 3       {d.tuplet_enters = 3;  d.tuplet_times = 2;}
         else if i_tuplet == 5  {d.tuplet_enters = 5;  d.tuplet_times = 4;}
         else if i_tuplet == 6  {d.tuplet_enters = 6;  d.tuplet_times = 4;}
@@ -131,7 +129,7 @@ pub(crate) fn read_duration(data: &[u8], seek: &mut usize, flags: u8) -> Duratio
         else if i_tuplet == 12 {d.tuplet_enters = 12; d.tuplet_times = 8;}
         else if i_tuplet == 13 {d.tuplet_enters = 13; d.tuplet_times = 8;}
     }
-    d
+    Ok(d)
 }
 
 /*/// A *n:m* tuplet.

@@ -72,7 +72,7 @@ impl MidiChannel {
 
 impl Song{
     /// Read all the MIDI channels
-    pub(crate) fn read_midi_channels(&mut self, data: &[u8], seek: &mut usize) { for i in 0u8..64u8 { self.channels.push(self.read_midi_channel(data, seek, i)); } }
+    pub(crate) fn read_midi_channels(&mut self, data: &[u8], seek: &mut usize) -> GpResult<()> { for i in 0u8..64u8 { self.channels.push(self.read_midi_channel(data, seek, i)?); } Ok(()) }
     /// Read MIDI channels. Guitar Pro format provides 64 channels (4 MIDI ports by 16 hannels), the channels are stored in this order:
     ///`port1/channel1`, `port1/channel2`, ..., `port1/channel16`, `port2/channel1`, ..., `port4/channel16`.
     ///
@@ -87,31 +87,31 @@ impl Song{
     /// * **Tremolo**: `byte`
     /// * **blank1**: `byte` => Backward compatibility with version 3.0
     /// * **blank2**: `byte` => Backward compatibility with version 3.0
-    pub(crate) fn read_midi_channel(&self, data: &[u8], seek: &mut usize, channel: u8) -> MidiChannel {
-        let instrument = read_int(data, seek);
+    pub(crate) fn read_midi_channel(&self, data: &[u8], seek: &mut usize, channel: u8) -> GpResult<MidiChannel> {
+        let instrument = read_int(data, seek)?;
         let mut c = MidiChannel{channel, effect_channel: channel, ..Default::default()};
-        c.volume = read_signed_byte(data, seek); c.balance = read_signed_byte(data, seek);
-        c.chorus = read_signed_byte(data, seek); c.reverb = read_signed_byte(data, seek); c.phaser = read_signed_byte(data, seek); c.tremolo = read_signed_byte(data, seek);
+        c.volume = read_signed_byte(data, seek)?; c.balance = read_signed_byte(data, seek)?;
+        c.chorus = read_signed_byte(data, seek)?; c.reverb = read_signed_byte(data, seek)?; c.phaser = read_signed_byte(data, seek)?; c.tremolo = read_signed_byte(data, seek)?;
         c.set_instrument(instrument);
         //println!("Channel: {}\t Volume: {}\tBalance: {}\tInstrument={}, {}, {}", c.channel, c.volume, c.balance, instrument, c.get_instrument(), c.get_instrument_name());
         *seek += 2; //Backward compatibility with version 3.0
-        c
+        Ok(c)
     }
 
     /// Read MIDI channel. MIDI channel in Guitar Pro is represented by two integers. First is zero-based number of channel, second is zero-based number of channel used for effects.
-    pub(crate) fn read_channel(&mut self, data: &[u8], seek: &mut usize) -> usize { //TODO: fixme for writing
-        let index          = read_int(data, seek) - 1;
-        let effect_channel = read_int(data, seek) - 1;
+    pub(crate) fn read_channel(&mut self, data: &[u8], seek: &mut usize) -> GpResult<usize> { //TODO: fixme for writing
+        let index          = read_int(data, seek)? - 1;
+        let effect_channel = read_int(data, seek)? - 1;
         if 0 <= index && index < self.channels.len().to_i32().unwrap() {
             if  self.channels[index.to_usize().unwrap()].instrument < 0 {self.channels[index.to_usize().unwrap()].instrument = 0;}
             if !self.channels[index.to_usize().unwrap()].is_percussion_channel() {self.channels[index.to_usize().unwrap()].effect_channel =  effect_channel.to_u8().unwrap();}
         }
-        index.to_usize().unwrap()
+        Ok(index.to_usize().unwrap())
     }
 
     pub(crate) fn write_midi_channels(&self, data: &mut Vec<u8>) {
         for i in 0..self.channels.len() {
-            println!("writing channel: {:?}", self.channels[i]);
+            //println!("writing channel: {:?}", self.channels[i]);
             if self.channels[i].is_percussion_channel() && self.channels[i].instrument == 0 {write_i32(data, -1);}
             else                                                                            {write_i32(data, self.channels[i].instrument);}
             write_signed_byte(data, Self::from_channel_short(self.channels[i].volume));

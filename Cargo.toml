@@ -3,3 +3,4 @@ authors = ["slundi"]
 
 [workspace]
 members = ["lib", "cli", "web_server"]
+resolver = "2"
