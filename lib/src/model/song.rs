@@ -1,15 +1,22 @@
 
 use fraction::ToPrimitive;
 
-use crate::enums::*;
-use crate::io::*;
-use crate::headers::*;
-use crate::page::*;
-use crate::track::*;
-use crate::key_signature::*;
-use crate::lyric::*;
-use crate::midi::*;
-use crate::rse::*;
+use crate::model::enums::*;
+use crate::io::primitive::*;
+use crate::model::track::*;
+use crate::model::measure::*;
+use crate::model::chord::*;
+use crate::model::note::*;
+use crate::model::effects::*;
+use crate::model::beat::*;
+use crate::model::headers::*;
+use crate::model::page::*;
+use crate::model::key_signature::*;
+use crate::model::lyric::*;
+use crate::model::mix_table::*;
+use crate::model::rse::*;
+use crate::audio::midi::*;
+use crate::io::gpif_import::*;
 
 
 // Struct utility to read file: https://stackoverflow.com/questions/55555538/what-is-the-correct-way-to-read-a-binary-file-in-chunks-of-a-fixed-size-and-stor
@@ -170,6 +177,21 @@ impl Song {
         println!("read_gp5(), after tracks   \t seek: {}", seek);
         self.read_measures(data, &mut seek);
         println!("read_gp5(), after measures \t seek: {}", seek);
+    }
+    /// Read Guitar Pro 7+ file (.gp)
+    pub fn read_gp(&mut self, data: &[u8]) {
+        use crate::io::gpx::read_gp;
+        match read_gp(data) {
+            Ok(gpif) => {
+                self.version.number = (7,0,0); // Todo parse from gpif.version
+                self.read_gpif(&gpif);
+            },
+            Err(e) => panic!("Error reading GP file: {}", e),
+        }
+    }
+    /// Read Guitar Pro 6 file (.gpx)
+    pub fn read_gpx(&mut self, _data: &[u8]) {
+        panic!("GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.");
     }
 
     /// Read information (name, artist, ...)

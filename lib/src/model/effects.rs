@@ -1,6 +1,6 @@
 use fraction::ToPrimitive;
 
-use crate::{io::*, gp::*, chord::*, key_signature::*, enums::*};
+use crate::{io::primitive::*, model::{song::*, chord::*, key_signature::*, enums::*}};
 
 /// A single point within the BendEffect
 #[derive(Debug,Clone,PartialEq, Eq, Default)]
@@ -70,7 +70,7 @@ pub struct GraceEffect {
 impl Default for GraceEffect { fn default() -> Self { GraceEffect {duration: 1, fret: 0, is_dead: false, is_on_beat: false, transition: GraceEffectTransition::None, velocity: DEFAULT_VELOCITY }}}
 impl GraceEffect {
     pub(crate) fn _duration_time(self) -> i16 {
-        (f32::from(crate::key_signature::DURATION_QUARTER_TIME.to_i16().unwrap()) / 16f32 * f32::from(self.duration)).to_i16().expect("Cannot get bend point time").to_i16().unwrap()
+        (f32::from(crate::model::key_signature::DURATION_QUARTER_TIME.to_i16().unwrap()) / 16f32 * f32::from(self.duration)).to_i16().expect("Cannot get bend point time").to_i16().unwrap()
     }
 }
 
@@ -111,7 +111,33 @@ pub struct TrillEffect {
 }
 //impl Default for TrillEffect { fn default() -> Self {TrillEffect { fret:0, duration: Duration::default() }}}
 
-impl Song {
+pub trait SongEffectOps {
+    fn read_bend_effect(&self, data: &[u8], seek: &mut usize) -> Option<BendEffect>;
+    fn read_grace_effect(&self, data: &[u8], seek: &mut usize) -> GraceEffect;
+    fn read_grace_effect_v5(&self, data: &[u8], seek: &mut usize) -> GraceEffect;
+    fn read_tremolo_picking(&self, data: &[u8], seek: &mut usize) -> TremoloPickingEffect;
+    fn read_slides_v5(&self, data: &[u8], seek: &mut usize) -> Vec<SlideType>;
+    fn read_harmonic(&self, data: &[u8], seek: &mut usize, note: &crate::model::note::Note) -> HarmonicEffect;
+    fn read_harmonic_v5(&mut self, data: &[u8], seek: &mut usize) -> HarmonicEffect;
+    fn read_trill(&self, data: &[u8], seek: &mut usize) -> TrillEffect;
+    fn write_bend(&self, data: &mut Vec<u8>, bend: &Option<BendEffect>);
+    fn write_grace(&self, data: &mut Vec<u8>, grace: &Option<GraceEffect>);
+    fn write_grace_v5(&self, data: &mut Vec<u8>, grace: &Option<GraceEffect>);
+    fn write_harmonic(&self, data: &mut Vec<u8>, note: &crate::model::note::Note, strings: &[(i8,i8)]);
+    fn write_harmonic_v5(&self, data: &mut Vec<u8>, note: &crate::model::note::Note, strings: &[(i8,i8)]);
+    fn write_slides_v5(&self, data: &mut Vec<u8>, slides: &[SlideType]);
+}
+
+fn from_trill_period(period: i8) -> u16 {
+    match period {
+        1 => DURATION_SIXTEENTH,
+        2 => DURATION_THIRTY_SECOND,
+        3 => DURATION_SIXTY_FOURTH,
+        _ => panic!("Cannot get trill period"),
+    }.to_u16().unwrap()
+}
+
+impl SongEffectOps for Song {
     /// Read a bend. It is encoded as:
     /// - Bend type: `signed-byte`. See BendType.
     /// - Bend value: `int`.
@@ -120,13 +146,13 @@ impl Song {
     ///   * Position: `int`. Shows where point is set along *x*-axis.
     ///   * Value: `int`. Shows where point is set along *y*-axis.
     ///   * Vibrato: `bool`.
-    pub(crate) fn read_bend_effect(&self, data: &[u8], seek: &mut usize) -> Option<BendEffect> {
+    fn read_bend_effect(&self, data: &[u8], seek: &mut usize) -> Option<BendEffect> {
         let mut be = BendEffect{kind: get_bend_type(read_signed_byte(data, seek)), ..Default::default()};
-        be.value = read_int(data, seek).to_i16().unwrap();
-        let count: u8 = read_int(data, seek).to_u8().unwrap();
+        be.value = read_int(data, seek).to_i16().unwrap_or(0);
+        let count: u8 = read_int(data, seek).to_u8().unwrap_or(0);
         for _ in 0..count {
-            let mut bp = BendPoint{position: (f32::from(read_int(data, seek).to_i16().unwrap()) * f32::from(BEND_EFFECT_MAX_POSITION) / GP_BEND_POSITION).round().to_u8().unwrap(), ..Default::default()};
-            bp.value = (f32::from(read_int(data, seek).to_i16().unwrap()) * f32::from(be.semitone_length) / GP_BEND_SEMITONE).round().to_i8().unwrap();
+            let mut bp = BendPoint{position: (f32::from(read_int(data, seek).to_i16().unwrap_or(0)) * f32::from(BEND_EFFECT_MAX_POSITION) / GP_BEND_POSITION).round().to_u8().unwrap_or(0), ..Default::default()};
+            bp.value = (f32::from(read_int(data, seek).to_i16().unwrap_or(0)) * f32::from(be.semitone_length) / GP_BEND_SEMITONE).round().to_i8().unwrap_or(0);
             bp.vibrato = read_bool(data, seek);
             be.points.push(bp);
         }
@@ -147,7 +173,7 @@ impl Song {
     ///   * 8: fff
     /// - Transition: `byte`. This variable determines the transition type used to make the grace note: `0: None`, `1: Slide`, `2: Bend`, `3: Hammer` (defined in `GraceEffectTransition`).
     /// - Duration: `byte`. Determines the grace note duration, coded this way: `3: Sixteenth note`, `2: Twenty-fourth note`, `1: Thirty-second note`.
-    pub(crate) fn read_grace_effect(&self, data: &[u8], seek: &mut usize) -> GraceEffect {
+    fn read_grace_effect(&self, data: &[u8], seek: &mut usize) -> GraceEffect {
         //println!("read_grace_effect()");
         let mut g = GraceEffect{fret: read_signed_byte(data, seek), ..Default::default()};
         g.velocity = unpack_velocity(read_byte(data, seek).to_i16().unwrap());
@@ -169,7 +195,7 @@ impl Song {
     /// - Flags: `byte`.
     ///   - *0x01*: grace note is muted (dead)
     ///   - *0x02*: grace note is on beat
-    pub(crate) fn read_grace_effect_v5(&self, data: &[u8], seek: &mut usize) -> GraceEffect {
+    fn read_grace_effect_v5(&self, data: &[u8], seek: &mut usize) -> GraceEffect {
         let mut g = GraceEffect{fret: read_byte(data, seek).to_i8().unwrap(), ..Default::default()};
         g.velocity = unpack_velocity(read_byte(data, seek).to_i16().unwrap());
         g.transition = get_grace_effect_transition(read_byte(data, seek).to_i8().unwrap());
@@ -181,7 +207,7 @@ impl Song {
     }
 
     /// Read tremolo picking. Tremolo constists of picking speed encoded in `signed-byte`. For value mapping refer to `from_tremolo_value()`.
-    pub(crate) fn read_tremolo_picking(&self, data: &[u8], seek: &mut usize) -> TremoloPickingEffect {
+    fn read_tremolo_picking(&self, data: &[u8], seek: &mut usize) -> TremoloPickingEffect {
         let mut tp = TremoloPickingEffect::default();
         tp.duration.value = from_tremolo_value(read_signed_byte(data, seek)).to_u16().unwrap();
         tp
@@ -196,7 +222,7 @@ impl Song {
     /// - *0x08*: slide out upwards
     /// - *0x10*: slide into from below
     /// - *0x20*: slide into from above
-    pub(crate) fn read_slides_v5(&self, data: &[u8], seek: &mut usize) -> Vec<SlideType> {
+    fn read_slides_v5(&self, data: &[u8], seek: &mut usize) -> Vec<SlideType> {
         let t = read_byte(data, seek);
         let mut v: Vec<SlideType> = Vec::with_capacity(6);
         if (t & 0x01) == 0x01 {v.push(SlideType::ShiftSlideTo);}
@@ -215,7 +241,7 @@ impl Song {
     /// - *15*: artificial harmonic on (*n + 5*)th fret
     /// - *17*: artificial harmonic on (*n + 7*)th fret
     /// - *22*: artificial harmonic on (*n + 12*)th fret
-    pub(crate) fn read_harmonic(&self, data: &[u8], seek: &mut usize, note: &crate::note::Note) -> HarmonicEffect {
+    fn read_harmonic(&self, data: &[u8], seek: &mut usize, note: &crate::model::note::Note) -> HarmonicEffect {
         let mut he = HarmonicEffect::default();
         match read_signed_byte(data, seek) {
             1 => he.kind = HarmonicType::Natural,
@@ -256,7 +282,7 @@ impl Song {
     /// 
     /// If harmonic type is tapped:
     /// - Fret: `byte`.
-    pub(crate) fn read_harmonic_v5(&mut self, data: &[u8], seek: &mut usize) -> HarmonicEffect {
+    fn read_harmonic_v5(&mut self, data: &[u8], seek: &mut usize) -> HarmonicEffect {
         let mut he = HarmonicEffect::default();
         match read_signed_byte(data, seek) {
             1 => he.kind = HarmonicType::Natural,
@@ -283,21 +309,13 @@ impl Song {
     /// Read trill.
     /// - Fret: `signed-byte`.
     /// - Period: `signed-byte`. See `from_trill_period`.
-    pub(crate) fn read_trill(&self, data: &[u8], seek: &mut usize) -> TrillEffect {
+    fn read_trill(&self, data: &[u8], seek: &mut usize) -> TrillEffect {
         let mut t = TrillEffect{fret: read_signed_byte(data, seek), ..Default::default()};
-        t.duration.value = Self::from_trill_period(read_signed_byte(data, seek));
+        t.duration.value = from_trill_period(read_signed_byte(data, seek));
         t
     }
-    fn from_trill_period(period: i8) -> u16 {
-        match period {
-            1 => DURATION_SIXTEENTH,
-            2 => DURATION_THIRTY_SECOND,
-            3 => DURATION_SIXTY_FOURTH,
-            _ => panic!("Cannot get trill period"),
-        }.to_u16().unwrap()
-    }
 
-    pub(crate) fn write_bend(&self, data: &mut Vec<u8>, bend: &Option<BendEffect>) {
+    fn write_bend(&self, data: &mut Vec<u8>, bend: &Option<BendEffect>) {
         if let Some(b) = bend {
             write_signed_byte(data, from_bend_type(&b.kind));
             write_i32(data, b.value.to_i32().unwrap());
@@ -309,14 +327,14 @@ impl Song {
             }
         }
     }
-    pub(crate) fn write_grace(&self, data: &mut Vec<u8>, grace: &Option<GraceEffect>) {
+    fn write_grace(&self, data: &mut Vec<u8>, grace: &Option<GraceEffect>) {
         let g = grace.clone().unwrap();
         write_signed_byte(data, g.fret);
         write_byte(data, pack_velocity(g.velocity).to_u8().unwrap());
         write_byte(data, g.duration.leading_zeros().to_u8().unwrap()); //8 - grace.duration.bit_length()
         write_signed_byte(data, from_grace_effect_transition(&g.transition));
     }
-    pub(crate) fn write_grace_v5(&self, data: &mut Vec<u8>, grace: &Option<GraceEffect>) {
+    fn write_grace_v5(&self, data: &mut Vec<u8>, grace: &Option<GraceEffect>) {
         let g = grace.clone().unwrap();
         write_byte(data, g.fret.to_u8().unwrap());
         write_byte(data, pack_velocity(g.velocity).to_u8().unwrap());
@@ -327,7 +345,7 @@ impl Song {
         if g.is_on_beat {flags |= 0x02;}
         write_byte(data, flags);
     }
-    pub(crate) fn write_harmonic(&self, data: &mut Vec<u8>, note: &crate::note::Note, strings: &[(i8,i8)]) {
+    fn write_harmonic(&self, data: &mut Vec<u8>, note: &crate::model::note::Note, strings: &[(i8,i8)]) {
         if let Some(h) = &note.effect.harmonic {
             let mut byte = from_harmonic_type(&h.kind);
             if h.kind != HarmonicType::Artificial {
@@ -342,7 +360,7 @@ impl Song {
             write_signed_byte(data, byte);
         }
     }
-    pub(crate) fn write_harmonic_v5(&self, data: &mut Vec<u8>, note: &crate::note::Note, strings: &[(i8,i8)]) {
+    fn write_harmonic_v5(&self, data: &mut Vec<u8>, note: &crate::model::note::Note, strings: &[(i8,i8)]) {
         if let Some(h) = &note.effect.harmonic {
             write_signed_byte(data, from_harmonic_type(&h.kind));
             if h.kind == HarmonicType::Artificial && (h.pitch.is_none() || h.octave.is_none()) {
@@ -355,7 +373,7 @@ impl Song {
             else if h.kind == HarmonicType::Tapped {write_byte(data, h.fret.unwrap().to_u8().unwrap());}
         }
     }
-    pub(crate) fn write_slides_v5(&self, data: &mut Vec<u8>, slides: &[SlideType]) {
+    fn write_slides_v5(&self, data: &mut Vec<u8>, slides: &[SlideType]) {
         let mut st = 0u8; //slide type
         for s in slides {
             if      s == &SlideType::ShiftSlideTo  {st |= 0x01;}

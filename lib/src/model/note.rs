@@ -1,6 +1,6 @@
 use fraction::ToPrimitive;
 
-use crate::{effects::*, enums::*, io::*, gp::*, beat::*, key_signature::*};
+use crate::{model::{effects::*, enums::*, song::*, beat::*, key_signature::*}, io::primitive::*};
 
 #[derive(Debug,Clone, PartialEq)]
 pub struct Note {
@@ -11,8 +11,8 @@ pub struct Note {
     pub duration_percent: f32,
     pub swap_accidentals: bool,
     pub kind: NoteType,
-    duration: Option<i8>,
-    tuplet: Option<i8,>
+    pub duration: Option<i8>,
+    pub tuplet: Option<i8>
 }
 impl Default for Note {fn default() -> Self {Note {
     value: 0,
@@ -96,7 +96,23 @@ impl NoteEffect {
     pub(crate) fn is_fingering(&self) -> bool {self.left_hand_finger != Fingering::Open || self.right_hand_finger != Fingering::Open}
 }
 
-impl Song {
+pub trait SongNoteOps {
+    fn read_notes(&mut self, data: &[u8], seek: &mut usize, track_index: usize, beat: &mut Beat, duration: &Duration, note_effect: NoteEffect);
+    fn read_note(&mut self, data: &[u8], seek: &mut usize, note: &mut Note, guitar_string: (i8,i8), track_index: usize);
+    fn read_note_v5(&mut self, data: &[u8], seek: &mut usize, note: &mut Note, guitar_string: (i8,i8), track_index: usize);
+    fn read_note_effects_v3(&self, data: &[u8], seek: &mut usize, note: &mut Note);
+    fn read_note_effects_v4(&mut self, data: &[u8], seek: &mut usize, note: &mut Note);
+    fn get_tied_note_value(&self, string_index: i8, track_index: usize) -> i16;
+    fn write_notes(&self, data: &mut Vec<u8>, beat: &Beat, strings: &[(i8,i8)], version: &(u8,u8,u8));
+    fn write_note_v3(&self, data: &mut Vec<u8>, note: &Note);
+    fn write_note_v4(&self, data: &mut Vec<u8>, note: &Note, strings: &[(i8,i8)], version: &(u8,u8,u8));
+    fn write_note_v5(&self, data: &mut Vec<u8>, note: &Note, strings: &[(i8,i8)], version: &(u8,u8,u8));
+    fn pack_note_flags(&self, note: &Note, version: &(u8,u8,u8)) -> u8;
+    fn write_note_effects_v3(&self, data: &mut Vec<u8>, note: &Note);
+    fn write_note_effects(&self, data: &mut Vec<u8>, note: &Note, strings: &[(i8,i8)], version: &(u8,u8,u8));
+}
+
+impl SongNoteOps for Song {
     /// Read notes. First byte lists played strings:
     /// - *0x01*: 7th string
     /// - *0x02*: 6th string
@@ -106,7 +122,7 @@ impl Song {
     /// - *0x20*: 2th string
     /// - *0x40*: 1th string
     /// - *0x80*: *blank*
-    pub(crate) fn read_notes(&mut self, data: &[u8], seek: &mut usize, track_index: usize, beat: &mut Beat, duration: &Duration, note_effect: NoteEffect) {
+    fn read_notes(&mut self, data: &[u8], seek: &mut usize, track_index: usize, beat: &mut Beat, duration: &Duration, note_effect: NoteEffect) {
         let flags = read_byte(data, seek);
         //println!("read_notes(), flags: {}", flags);
         for i in 0..self.tracks[track_index].strings.len() {
@@ -151,7 +167,7 @@ impl Song {
         if (flags & 0x10) == 0x10 {
             let v = read_signed_byte(data, seek);
             //println!("read_note(), v: {}", v);
-            note.velocity = crate::effects::unpack_velocity(v.to_i16().unwrap());
+            note.velocity = crate::model::effects::unpack_velocity(v.to_i16().unwrap());
             //println!("read_note(), velocity: {}", note.velocity);
         }
         if (flags & 0x20) == 0x20 {
@@ -204,7 +220,7 @@ impl Song {
         if (flags &0x10) == 0x10 {
             let v = read_signed_byte(data, seek);
             //println!("read_note(), v: {}", v);
-            note.velocity = crate::effects::unpack_velocity(v.to_i16().unwrap());
+            note.velocity = crate::model::effects::unpack_velocity(v.to_i16().unwrap());
             //println!("read_note(), velocity: {}", note.velocity);
         }
         if (flags &0x20) == 0x20 {
@@ -311,7 +327,7 @@ impl Song {
         -1
     }
 
-    pub(crate) fn write_notes(&self, data: &mut Vec<u8>, beat: &Beat, strings: &[(i8,i8)], version: &(u8,u8,u8)) {
+    fn write_notes(&self, data: &mut Vec<u8>, beat: &Beat, strings: &[(i8,i8)], version: &(u8,u8,u8)) {
         let mut string_flags: u8 = 0;
         for i in 0..beat.notes.len() {string_flags |= 1 << (7 - beat.notes[i].string);}
         write_byte(data, string_flags);
@@ -331,7 +347,7 @@ impl Song {
             write_signed_byte(data, note.duration.unwrap());
             write_signed_byte(data, note.tuplet.unwrap());
         }
-        if (flags & 0x10) == 0x10 {write_signed_byte(data, crate::effects::pack_velocity(note.velocity));}
+        if (flags & 0x10) == 0x10 {write_signed_byte(data, crate::model::effects::pack_velocity(note.velocity));}
         if (flags & 0x20) == 0x20 {
             if note.kind != NoteType::Rest {write_signed_byte(data, note.value.to_i8().unwrap());}
             else {write_signed_byte(data, 0);}
@@ -346,7 +362,7 @@ impl Song {
             write_signed_byte(data, note.duration.unwrap());
             write_signed_byte(data, note.tuplet.unwrap());
         }
-        if (flags & 0x10) == 0x10 {write_signed_byte(data, crate::effects::pack_velocity(note.velocity));}
+        if (flags & 0x10) == 0x10 {write_signed_byte(data, crate::model::effects::pack_velocity(note.velocity));}
         if (flags & 0x20) == 0x20 {
             if note.kind != NoteType::Rest {write_signed_byte(data, note.value.to_i8().unwrap());}
             else {write_signed_byte(data, 0);}
@@ -364,7 +380,7 @@ impl Song {
         let flags: u8 = self.pack_note_flags(note, version);
         write_byte(data, flags);
         if (flags & 0x20) == 0x20 {write_byte(data, from_note_type(&note.kind));}
-        if (flags & 0x10) == 0x10 {write_signed_byte(data, crate::effects::pack_velocity(note.velocity));}
+        if (flags & 0x10) == 0x10 {write_signed_byte(data, crate::model::effects::pack_velocity(note.velocity));}
         if (flags & 0x20) == 0x20 {
             if note.kind != NoteType::Tie {write_signed_byte(data, note.value.to_i8().unwrap());}
             else {write_signed_byte(data, 0);}

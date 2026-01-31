@@ -8,7 +8,7 @@ use encoding_rs::*;
 /// * `seek` - start position to read
 /// * returns the read byte as u8
 pub(crate) fn read_byte(data: &[u8], seek: &mut usize ) -> u8 {
-    if data.len() < *seek {panic!("End of filee reached");}
+    if *seek >= data.len() {panic!("End of file reached");}
     let b = data[*seek];
     *seek += 1;
     b
@@ -19,7 +19,7 @@ pub(crate) fn read_byte(data: &[u8], seek: &mut usize ) -> u8 {
 /// * `seek` - start position to read
 /// * returns the read byte as u8
 pub(crate) fn read_signed_byte(data: &[u8], seek: &mut usize ) -> i8 {
-    if data.len() < *seek {panic!("End of file reached");}
+    if *seek >= data.len() {panic!("End of file reached");}
     let b = data[*seek] as i8;
     *seek += 1;
     b
@@ -30,7 +30,7 @@ pub(crate) fn read_signed_byte(data: &[u8], seek: &mut usize ) -> i8 {
 /// * `seek` - start position to read
 /// * returns boolean value
 pub(crate) fn read_bool(data: &[u8], seek: &mut usize ) -> bool {
-    if data.len() < *seek {panic!("End of file reached");}
+    if *seek >= data.len() {panic!("End of file reached");}
     let b = data[*seek];
     *seek += 1;
     b != 0
@@ -41,7 +41,7 @@ pub(crate) fn read_bool(data: &[u8], seek: &mut usize ) -> bool {
 /// * `seek` - start position to read
 /// * returns the short value
 pub(crate) fn read_short(data: &[u8], seek: &mut usize ) -> i16 {
-    if data.len() < *seek + 2 {panic!("End of file reached");}
+    if *seek + 2 > data.len() {panic!("End of file reached");}
     let n = i16::from_le_bytes([data[*seek], data[*seek+1]]);
     *seek += 2;
     n
@@ -52,7 +52,7 @@ pub(crate) fn read_short(data: &[u8], seek: &mut usize ) -> i16 {
 /// * `seek` - start position to read
 /// * returns the integer value
 pub(crate) fn read_int(data: &[u8], seek: &mut usize ) -> i32 {
-    if data.len() < *seek + 4 {panic!("End of file reached");}
+    if *seek + 4 > data.len() {panic!("End of file reached");}
     let n = i32::from_le_bytes([data[*seek], data[*seek+1], data[*seek+2], data[*seek+3]]);
     *seek += 4;
     n
@@ -86,7 +86,10 @@ pub(crate) fn read_int_size_string(data: &[u8], seek: &mut usize) -> String {
 
 /// Read length of the string increased by 1 and stored in 1 integer followed by length of the string in 1 byte and finally followed by character bytes.
 pub(crate) fn read_int_byte_size_string(data: &[u8], seek: &mut usize) -> String {
-    let s = (read_int(data, seek) - 1).to_usize().unwrap();
+    let val = read_int(data, seek);
+    if val <= 0 { return String::new(); }
+    let s = (val - 1).to_usize().unwrap_or(0);
+    if *seek + 1 + s > data.len() { return String::new(); } // Safety check
     read_byte_size_string(data, seek, s)
 }
 
@@ -133,8 +136,8 @@ pub const VERSIONS: [((u8,u8,u8), bool, &str); 10] = [((3, 0, 0), false, "FICHIE
 /// * `data` - array of bytes
 /// * `seek` - cursor that will be incremented
 /// * returns version
-pub(crate) fn read_version_string(data: &[u8], seek: &mut usize) -> crate::headers::Version {
-    let mut v = crate::headers::Version {data: read_byte_size_string(data, seek, 30), number: (5,2,0), clipboard: false};
+pub(crate) fn read_version_string(data: &[u8], seek: &mut usize) -> crate::model::headers::Version {
+    let mut v = crate::model::headers::Version {data: read_byte_size_string(data, seek, 30), number: (5,2,0), clipboard: false};
     //println!("Version {} {}", n, s);
     //get the version
     for x in VERSIONS {
@@ -208,7 +211,7 @@ pub(crate) fn write_version(data: &mut Vec<u8>, version: (u8,u8,u8)) {
 
 #[cfg(test)]
 mod test {
-    use crate::io::*;
+    use super::*;
 
     #[test]
     fn test_read_byte_size_string() {
@@ -248,7 +251,8 @@ mod test {
     fn test_write_int_size_string() {
         let mut out: Vec<u8> = Vec::with_capacity(16);
         write_int_size_string(&mut out, "%ARTIST%");
-        let expected_result: Vec<u8> = vec![0x09,0x00,0x00,0x00,   0x08,0x25,0x41,0x52,0x54,0x49,0x53,0x54,0x25];
+        // int_size_string = int(length+1), then string bytes (no byte length)
+        let expected_result: Vec<u8> = vec![0x09,0x00,0x00,0x00,   0x25,0x41,0x52,0x54,0x49,0x53,0x54,0x25];
         assert_eq!(out, expected_result);
     }
     #[test]

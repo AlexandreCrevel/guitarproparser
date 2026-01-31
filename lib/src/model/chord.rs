@@ -1,6 +1,6 @@
 use fraction::ToPrimitive;
 
-use crate::{io::*, gp::*, enums::*};
+use crate::{io::primitive::*, model::{song::*, enums::*}};
 
 /// A chord annotation for beats
 #[derive(Debug,Clone,PartialEq,Eq,Default)]
@@ -77,6 +77,7 @@ impl PitchClass {
         if sharp.is_none() { p.sharp = p.accidental >= 0; }
         p
     }
+    #[allow(dead_code)]
     pub(crate) fn from_note(note: String) -> PitchClass {
         let mut p = PitchClass {note, just:0, accidental:0, value:-1, sharp: true,};
         if p.note.ends_with('b')      {p.accidental = -1; p.sharp = false;}
@@ -98,10 +99,21 @@ impl std::fmt::Display for PitchClass {
     }
 }
 
-impl Song {
+pub trait SongChordOps {
+    fn read_chord(&self, data: &[u8], seek: &mut usize, string_count: u8) -> Chord;
+    fn read_old_format_chord(&self, data: &[u8], seek: &mut usize, chord: &mut Chord);
+    fn read_new_format_chord_v3(&self, data: &[u8], seek: &mut usize, chord: &mut Chord);
+    fn read_new_format_chord_v4(&self, data: &[u8], seek: &mut usize, chord: &mut Chord);
+    fn write_chord(&self, data: &mut  Vec<u8>, beat: &crate::model::beat::Beat);
+    fn write_new_format_chord(&self, data: &mut Vec<u8>, chord: &Chord);
+    fn write_old_format_chord(&self, data: &mut Vec<u8>, chord: &Chord);
+    fn write_chord_v4(&self, data: &mut  Vec<u8>, beat: &crate::model::beat::Beat);
+}
+
+impl SongChordOps for Song {
     /// Read chord diagram. First byte is chord header. If it's set to 0, then following chord is written in 
     /// default (GP3) format. If chord header is set to 1, then chord diagram in encoded in more advanced (GP4) format.
-    pub(crate) fn read_chord(&self, data: &[u8], seek: &mut usize, string_count: u8) -> Chord {
+    fn read_chord(&self, data: &[u8], seek: &mut usize, string_count: u8) -> Chord {
         let mut c = Chord {length: string_count, strings: vec![-1; string_count.into()], ..Default::default()};
         for _ in 0..string_count {c.strings.push(-1);}
         c.new_format = Some(read_bool(data, seek));
@@ -109,20 +121,23 @@ impl Song {
             if      self.version.number.0 == 3 { self.read_new_format_chord_v3(data, seek, &mut c); }
             else                               { self.read_new_format_chord_v4(data, seek, &mut c);}
         }
-        else {self.read_old_format_chord(data, seek, &mut c);}
+        else {
+            if self.version.number.0 == 3 { read_byte(data, seek); }
+            self.read_old_format_chord(data, seek, &mut c);
+        }
         c
     }
     /// Read chord diagram encoded in GP3 format. Chord diagram is read as follows:
     /// - Name: `int-byte-size-string`. Name of the chord, e.g. *Em*.
     /// - First fret: `int`. The fret from which the chord is displayed in chord editor.
     /// - List of frets: 6 `ints`. Frets are listed in order: fret on the string 1, fret on the string 2, ..., fret on the
-    /// string 6. If string is untouched then the values of fret is *-1*.
+    ///   string 6. If string is untouched then the values of fret is *-1*.
     fn read_old_format_chord(&self, data: &[u8], seek: &mut usize, chord: &mut Chord) {
-        chord.name = read_int_size_string(data, seek);
-        chord.first_fret = Some(read_int(data, seek).to_u8().unwrap());
+        chord.name = read_int_byte_size_string(data, seek);
+        chord.first_fret = Some(read_int(data, seek) as u8);
         if chord.first_fret.is_some() {
             for i in 0u8..6u8 {
-                let fret = read_int(data, seek).to_i8().unwrap();
+                let fret = read_int(data, seek) as i8;
                 if i < chord.strings.len().to_u8().unwrap() {chord.strings.push(fret);} //chord.strings[i] = fret;
             }
         }
@@ -243,7 +258,7 @@ impl Song {
         chord.show = Some(read_bool(data, seek));
     }
 
-    pub(crate) fn write_chord(&self, data: &mut  Vec<u8>, beat: &crate::beat::Beat) {
+    fn write_chord(&self, data: &mut  Vec<u8>, beat: &crate::model::beat::Beat) {
         if let Some(c) = &beat.effect.chord {
             write_bool(data, c.new_format == Some(true));
             if c.new_format == Some(true) {self.write_new_format_chord(data, c);}
@@ -316,7 +331,7 @@ impl Song {
         }
     }
 
-    pub(crate) fn write_chord_v4(&self, data: &mut  Vec<u8>, beat: &crate::beat::Beat) {
+    fn write_chord_v4(&self, data: &mut  Vec<u8>, beat: &crate::model::beat::Beat) {
         if let Some(c) = &beat.effect.chord {
             write_signed_byte(data, 1); //signify GP4 chord format
             write_bool(data, c.sharp == Some(true));
@@ -383,7 +398,7 @@ impl Song {
 
 #[cfg(test)]
 mod test {
-    use crate::chord::PitchClass;
+    use crate::model::chord::PitchClass;
 
     #[test]
     fn test_pitch_1() {

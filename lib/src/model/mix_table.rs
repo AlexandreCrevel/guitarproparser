@@ -1,8 +1,8 @@
 use fraction::ToPrimitive;
 
-use crate::rse::*;
-use crate::io::*;
-use crate::gp::*;
+use crate::model::{rse::*, song::*};
+use crate::io::primitive::*;
+// use crate::gp::*;
 
 /// A mix table item describes a mix parameter, e.g. volume or reverb
 #[derive(Debug,Clone,PartialEq,Eq,Default)]
@@ -13,19 +13,20 @@ pub struct MixTableItem {
 }
 //impl Default for MixTableItem { fn default() -> Self { MixTableItem { value: 0, duration: 0, all_tracks: false }}}
 
+#[allow(dead_code)]
 const WAH_EFFECT_OFF:  i8 = -2;
 const WAH_EFFECT_NONE: i8 = -1;
 #[derive(Debug,Clone,PartialEq,Eq)]
 pub struct WahEffect {
-    value: i8,
-    display: bool,
+    pub value: i8,
+    pub display: bool,
 }
 impl Default for WahEffect { fn default() -> Self { WahEffect { value: WAH_EFFECT_NONE, display: false }}}
 impl WahEffect {
     pub(crate) fn _check_value(value: i8) {
         if !(WAH_EFFECT_OFF..=100).contains(&value) {panic!("Value for a wah effect must be in range from -2 to 100")}
     }
-    pub(crate) fn _is_on(&self) -> bool {self.value <= 0 && self.value <= 100}
+    pub(crate) fn _is_on(&self) -> bool {self.value >= 0 && self.value <= 100}
     pub(crate) fn _is_off(&self) -> bool {self.value == WAH_EFFECT_OFF}
     pub(crate) fn _is_none(&self) -> bool {self.value == WAH_EFFECT_NONE}
 }
@@ -48,7 +49,7 @@ pub struct MixTableChange {
     pub use_rse: bool,
 }
 impl Default for MixTableChange { fn default() -> Self { MixTableChange { instrument:None, rse:RseInstrument::default(), volume:None, balance:None, chorus:None, reverb:None, phaser:None, tremolo:None,
-        tempo_name:String::new(), tempo:None, hide_tempo:true, wah:None, use_rse:false, 
+    tempo_name:String::new(), tempo:None, hide_tempo:true, wah:None, use_rse:false, 
 }}}
 impl MixTableChange {
     pub(crate) fn is_just_wah(&self) -> bool {
@@ -56,7 +57,20 @@ impl MixTableChange {
     }
 }
 
-impl Song {
+pub trait SongMixTableOps {
+    fn read_mix_table_change(&mut self, data: &[u8], seek: &mut usize) -> MixTableChange;
+    fn read_mix_table_change_values(&mut self, data: &[u8], seek: &mut usize, mtc: &mut MixTableChange);
+    fn read_mix_table_change_durations(&self, data: &[u8], seek: &mut usize, mtc: &mut MixTableChange);
+    fn read_mix_table_change_flags(&self, data: &[u8], seek: &mut usize, mtc: &mut MixTableChange) -> i8;
+    fn read_wah_effect(&self, data: &[u8], seek: &mut usize, flags: i8) -> WahEffect;
+    fn write_mix_table_change(&self, data: &mut Vec<u8>, mix_table_change: &Option<MixTableChange>, version: &(u8,u8,u8));
+    fn write_mix_table_change_values(&self, data: &mut Vec<u8>, mix_table_change: &MixTableChange, version: &(u8,u8,u8));
+    fn write_mix_table_change_durations(&self, data: &mut Vec<u8>, mix_table_change: &MixTableChange, version: &(u8,u8,u8));
+    fn write_mix_table_change_flags_v4(&self, data: &mut Vec<u8>, mix_table_change: &MixTableChange);
+    fn write_mix_table_change_flags_v5(&self, data: &mut Vec<u8>, mix_table_change: &MixTableChange);
+}
+
+impl SongMixTableOps for Song {
     /// Read mix table change. List of values is read first. See `read_values()`.
     /// 
     /// List of values is followed by the list of durations for parameters that have changed. See `read_durations()`.
@@ -67,7 +81,7 @@ impl Song {
     /// Mix table change was modified to support RSE instruments. It is read as in Guitar Pro 3 and is followed by:
     /// - Wah effect. See :meth:`read_wah_effect()`.
     /// - RSE instrument effect. See :meth:`read_rse_instrument_effect()`.
-    pub(crate) fn read_mix_table_change(&mut self, data: &[u8], seek: &mut usize) -> MixTableChange {
+    fn read_mix_table_change(&mut self, data: &[u8], seek: &mut usize) -> MixTableChange {
         let mut tc = MixTableChange::default();
         self.read_mix_table_change_values(data, seek, &mut tc);
         self.read_mix_table_change_durations(data, seek, &mut tc);
@@ -122,24 +136,22 @@ impl Song {
         //tempo
         if self.version.number >= (5,0,0) {mtc.tempo_name = read_int_byte_size_string(data, seek);}
         let b = read_int(data, seek);
-        if b >= 0 {mtc.tempo = Some(MixTableItem{value: b.to_u8().unwrap(), ..Default::default()});}
+        if b >= 0 {mtc.tempo = Some(MixTableItem{value: b.clamp(0, 255) as u8, ..Default::default()});}
     }
     /// Read mix table change durations. Durations are read for each non-null `MixTableItem`. Durations are encoded in `signed-byte`.
     /// 
     /// If tempo did change, then one :ref:`bool` is read. If it's true, then tempo change won't be displayed on the score.
     fn read_mix_table_change_durations(&self, data: &[u8], seek: &mut usize, mtc: &mut MixTableChange) {
-        if mtc.volume.is_some()  {mtc.volume.take().unwrap().duration  = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.balance.is_some() {mtc.balance.take().unwrap().duration = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.chorus.is_some()  {mtc.chorus.take().unwrap().duration  = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.reverb.is_some()  {mtc.reverb.take().unwrap().duration  = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.phaser.is_some()  {mtc.phaser.take().unwrap().duration  = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.tremolo.is_some() {mtc.tremolo.take().unwrap().duration = read_signed_byte(data, seek).to_u8().unwrap();}
-        if mtc.tempo.is_some()   {
-            let mut t = mtc.tempo.take().unwrap();
-            t.duration = read_signed_byte(data, seek).to_u8().unwrap();
-            mtc.tempo = Some(t);
+        if let Some(ref mut item) = mtc.volume  { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.balance { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.chorus  { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.reverb  { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.phaser  { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.tremolo { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.tempo {
+            item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0);
             mtc.hide_tempo = false;
-            if self.version.number >= (5,0,0) {mtc.hide_tempo = read_bool(data, seek);}
+            if self.version.number >= (5,0,0) { mtc.hide_tempo = read_bool(data, seek); }
         }
     }
 
@@ -195,7 +207,7 @@ impl Song {
     /// - Wah value: :ref:`signed-byte`. See `WahEffect` for value mapping.
     fn read_wah_effect(&self, data: &[u8], seek: &mut usize, flags: i8) -> WahEffect {WahEffect{value: read_signed_byte(data, seek), display: (flags & -0x80) == -0x80 /*(flags & 0x80) == 0x80*/}}
 
-    pub(crate) fn write_mix_table_change(&self, data: &mut Vec<u8>, mix_table_change: &Option<MixTableChange>, version: &(u8,u8,u8)) {
+    fn write_mix_table_change(&self, data: &mut Vec<u8>, mix_table_change: &Option<MixTableChange>, version: &(u8,u8,u8)) {
         if let Some(mtc) = mix_table_change {
             self.write_mix_table_change_values(data, mtc, version);
             self.write_mix_table_change_durations(data, mtc, version);

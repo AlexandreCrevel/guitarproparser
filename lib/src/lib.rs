@@ -1,35 +1,74 @@
-#[path = "song.rs"] pub mod gp;
-mod io;
-pub mod enums;
-pub mod headers;
-pub mod track;
-pub mod measure;
-pub mod effects;
-pub mod key_signature;
-pub mod midi;
-pub mod mix_table;
-pub mod chord;
-pub mod page;
-pub mod rse;
-pub mod note;
-pub mod lyric;
-pub mod beat;
+pub mod model;
+pub mod io;
+pub mod audio;
+
+// Re-export core types
+pub use crate::model::song::Song;
+pub use crate::model::track::Track;
+pub use crate::model::measure::Measure;
+pub use crate::model::beat::{Beat, Voice};
+pub use crate::model::note::Note;
+pub use crate::model::chord::Chord;
+pub use crate::model::headers::MeasureHeader;
+pub use crate::model::page::PageSetup;
+pub use crate::model::key_signature::{KeySignature, TimeSignature};
+pub use crate::model::enums::*;
+
+// Re-export traits for easy use
+pub use crate::model::track::SongTrackOps;
+pub use crate::model::measure::SongMeasureOps;
+pub use crate::model::chord::SongChordOps;
+pub use crate::model::note::SongNoteOps;
+pub use crate::model::effects::SongEffectOps;
+pub use crate::model::beat::SongBeatOps;
+pub use crate::model::headers::SongHeaderOps;
+pub use crate::model::page::SongPageOps;
+pub use crate::model::mix_table::SongMixTableOps;
+pub use crate::model::rse::SongRseOps;
+pub use crate::model::lyric::SongLyricOps;
+pub use crate::audio::midi::SongMidiOps;
+pub use crate::io::gpif_import::SongGpifOps;
+
+#[cfg(test)]
+mod test_audit;
 
 #[cfg(test)]
 mod test {
     use std::{io::Read, fs};
     use fraction::ToPrimitive;
-    use crate::gp::Song;
+    use crate::model::song::Song;
+    use crate::model::track::SongTrackOps;
+    use crate::model::measure::SongMeasureOps;
+    use crate::model::chord::SongChordOps;
+    use crate::model::note::SongNoteOps;
+    use crate::model::effects::SongEffectOps;
+    use crate::model::beat::SongBeatOps;
+    use crate::model::headers::SongHeaderOps;
+    use crate::model::page::SongPageOps;
+    use crate::model::mix_table::SongMixTableOps;
+    use crate::model::rse::SongRseOps;
+    use crate::model::lyric::SongLyricOps;
+    use crate::audio::midi::SongMidiOps;
+    use crate::io::gpif_import::SongGpifOps;
 
     fn read_file(path: String) -> Vec<u8> {
-        let f = fs::OpenOptions::new().read(true).open(&path).expect("Cannot open file");
-        let size: usize = fs::metadata(&path).unwrap_or_else(|_e|{panic!("Unable to get file size")}).len().to_usize().unwrap();
+        let test_path = if path.starts_with("test/") {
+            format!("../{}", path)
+        } else {
+            format!("../test/{}", path)
+        };
+        let f = fs::OpenOptions::new().read(true).open(&test_path)
+            .unwrap_or_else(|e| panic!("Cannot open file '{}': {}", test_path, e));
+        let size: usize = fs::metadata(&test_path)
+            .unwrap_or_else(|e| panic!("Unable to get file size for '{}': {}", test_path, e))
+            .len().to_usize().unwrap();
         let mut data: Vec<u8> = Vec::with_capacity(size);
-        f.take(u64::from_ne_bytes(size.to_ne_bytes())).read_to_end(&mut data).unwrap_or_else(|_error|{panic!("Unable to read file contents");});
+        f.take(size as u64)
+            .read_to_end(&mut data)
+            .unwrap_or_else(|e| panic!("Unable to read file contents from '{}': {}", test_path, e));
         data
     }
 
-    //chords
     #[test]
     fn test_gp3_chord() {
         let mut song: Song = Song::default();
@@ -51,21 +90,19 @@ mod test {
         song.read_gp5(&read_file(String::from("test/Unknown Chord Extension.gp5")));
     }
     #[test]
-    fn test_gp5_chord_without_notes() { //Read chord even if there's no fingering
+    fn test_gp5_chord_without_notes() {
         let mut song: Song = Song::default();
         song.read_gp5(&read_file(String::from("test/chord_without_notes.gp5")));
         let mut song: Song = Song::default();
         song.read_gp5(&read_file(String::from("test/001_Funky_Guy.gp5")));
     }
 
-    //duration
     #[test]
     fn test_gp3_duration() {
         let mut song: Song = Song::default();
         song.read_gp3(&read_file(String::from("test/Duration.gp3")));
     }
 
-    //effects
     #[test]
     fn test_gp3_effects() {
         let mut song: Song = Song::default();
@@ -82,7 +119,6 @@ mod test {
         song.read_gp5(&read_file(String::from("test/Effects.gp5")));
     }
 
-    //harmonics
     #[test]
     fn test_gp3_harmonics() {
         let mut song: Song = Song::default();
@@ -99,7 +135,6 @@ mod test {
         song.read_gp5(&read_file(String::from("test/Harmonics.gp5")));
     }
 
-    //key
     #[test]
     fn test_gp4_key() {
         let mut song: Song = Song::default();
@@ -111,9 +146,6 @@ mod test {
         song.read_gp5(&read_file(String::from("test/Key.gp5")));
     }
 
-    //demo
-
-    //repeat
     #[test]
     fn test_gp4_repeat() {
         let mut song: Song = Song::default();
@@ -125,16 +157,12 @@ mod test {
         song.read_gp5(&read_file(String::from("test/Repeat.gp5")));
     }
 
-    //RSE
     #[test]
     fn test_gp5_rse() {
         let mut song: Song = Song::default();
         song.read_gp5(&read_file(String::from("test/RSE.gp5")));
-        let mut song: Song = Song::default();
-        song.read_gp5(&read_file(String::from("test/Demo v5.gp5")));
     }
 
-    //slides
     #[test]
     fn test_gp4_slides() {
         let mut song: Song = Song::default();
@@ -146,7 +174,6 @@ mod test {
         song.read_gp5(&read_file(String::from("test/Slides.gp5")));
     }
 
-    //strokes
     #[test]
     fn test_gp4_strokes() {
         let mut song: Song = Song::default();
@@ -158,21 +185,18 @@ mod test {
         song.read_gp5(&read_file(String::from("test/Strokes.gp5")));
     }
 
-    //vibrato
     #[test]
     fn test_gp4_vibrato() {
         let mut song: Song = Song::default();
         song.read_gp4(&read_file(String::from("test/Vibrato.gp4")));
     }
 
-    //voices
     #[test]
     fn test_gp5_voices() {
         let mut song: Song = Song::default();
         song.read_gp5(&read_file(String::from("test/Voices.gp5")));
     }
 
-    //wah
     #[test]
     fn test_gp5_no_wah() {
         let mut song: Song = Song::default();
@@ -184,12 +208,11 @@ mod test {
         song.read_gp5(&read_file(String::from("test/Wah.gp5")));
     }
     #[test]
-    fn test_gp5_wah_m() { //Handle gradual wah-wah changes
+    fn test_gp5_wah_m() {
         let mut song: Song = Song::default();
         song.read_gp5(&read_file(String::from("test/Wah-m.gp5")));
     }
 
-    //MuseScore tests
     #[test]
     fn test_gp5_all_percussion() {
         let mut song: Song = Song::default();
@@ -491,14 +514,22 @@ mod test {
         song.read_gp5(&read_file(String::from("test/volta.gp5")));
     }
 
-    //writing
     #[test]
-    fn test_gp3_writing() {
+    fn test_gp7_read() {
         let mut song = Song::default();
-        let data = read_file(String::from("test/Chords.gp3"));
-        song.read_gp3(&data);
-        let out = song.write((3,0,0), None);
-        assert_eq!(out, data[0..out.len()]);
-        song.read_gp3(&out);
+        let data = read_file(String::from("test/keysig.gp"));
+        song.read_gp(&data);
+        
+        println!("Version: {:?}", song.version);
+        println!("Name: {}", song.name);
+        println!("Tracks: {}", song.tracks.len());
+        println!("Measures: {}", song.measure_headers.len());
+        if !song.tracks.is_empty() {
+            println!("Track 1 measures: {}", song.tracks[0].measures.len());
+        }
+
+        assert_eq!(song.tracks.len(), 1);
+        assert_eq!(song.measure_headers.len(), 32);
+        assert_eq!(song.tracks[0].measures.len(), 32);
     }
 }

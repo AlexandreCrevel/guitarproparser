@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use fraction::ToPrimitive;
 
-use crate::{io::*, gp::*, key_signature::*, enums::*};
+use crate::{io::primitive::*, model::{song::*, key_signature::*, enums::*}};
 
 #[derive(Debug,Clone,PartialEq,Eq)]
 pub struct Version {
@@ -58,7 +58,8 @@ impl Default for MeasureHeader {
     }}
 }
 impl MeasureHeader {
-    pub(crate) fn length(&self) -> i64 {self.time_signature.numerator.to_i64().unwrap() * self.time_signature.denominator.time().to_i64().unwrap()}
+    #[allow(dead_code)]
+    pub(crate) fn length(&self) -> i64 {self.time_signature.numerator.to_i64().unwrap() * crate::model::key_signature::DURATION_QUARTER_TIME * 4 / self.time_signature.denominator.value.to_i64().unwrap()}
     pub(crate) fn _end(&self) -> i64 {self.start + self.length()}
 }
 
@@ -87,30 +88,31 @@ pub struct RepeatGroup {
     pub openings: Vec<usize>,
     pub is_closed: bool,
 }
-//impl Default for RepeatGroup {fn default() -> Self { RepeatGroup {measure_headers: Vec::new(), closings: Vec::new(), openings: Vec::new(), is_closed: false, }}}
-/*impl RepeatGroup {
-    pub(crate) fn add_measure_header(&mut self, measure_header: &MeasureHeader) {
-        let index = measure_header.number.to_usize().unwrap();
-        if self.openings.is_empty() {self.openings.push(index);} //if not len(self.openings): self.openings.append(h)
-        self.measure_headers.push(index);
-        if measure_header.repeat_close > 0 {
-            self.closings.push(index);
-            self.is_closed = true;
-        } else { //A new item after the header was closed? -> repeat alternative, reopens the group
-            self.is_closed = false;
-            self.openings.push(index);
-        }
-    }
-}*/
 
-impl Song {
+pub trait SongHeaderOps {
+    fn _add_measure_header(&mut self, header: MeasureHeader);
+    fn read_clipboard(&mut self, data: &[u8], seek: &mut usize) -> Option<Clipboard>;
+    fn read_measure_headers(&mut self, data: &[u8], seek: &mut usize, measure_count: usize);
+    fn read_measure_headers_v5(&mut self, data: &[u8], seek: &mut usize, measure_count: usize, directions: &(HashMap<DirectionSign, i16>, HashMap<DirectionSign, i16>));
+    fn read_measure_header(&mut self, data: &[u8], seek: &mut usize, number: usize, previous: Option<MeasureHeader>) -> (MeasureHeader, u8);
+    fn read_measure_header_v5(&mut self, data: &[u8], seek: &mut usize, number: usize, previous: Option<MeasureHeader>) -> (MeasureHeader,u8);
+    fn read_repeat_alternative(&mut self, data: &[u8], seek: &mut usize) -> u8;
+    fn read_repeat_alternative_v5(&mut self, data: &[u8], seek: &mut usize) -> u8;
+    fn read_directions(&self, data: &[u8], seek: &mut usize) -> (HashMap<DirectionSign, i16>, HashMap<DirectionSign, i16>);
+    fn write_measure_headers(&self, data: &mut Vec<u8>, version: &(u8,u8,u8));
+    fn write_measure_header(&self, data: &mut Vec<u8>, header: usize, previous: Option<usize>, version: &(u8,u8,u8));
+    fn write_clipboard(&self, data: &mut Vec<u8>, version: &(u8,u8,u8));
+    fn write_directions(&self, data: &mut Vec<u8>);
+}
+
+impl SongHeaderOps for Song {
     fn _add_measure_header(&mut self, header: MeasureHeader) {
         // if the group is closed only the next upcoming header can reopen the group in case of a repeat alternative, so we remove the current group
         //TODO: if header.repeat_open or self.current_repeat_group.is_closed && header.repeat_alternative <= 0 {self.current_repeat_group = RepeatGroup::default();}
         self.measure_headers.push(header);
     }
 
-    pub(crate) fn read_clipboard(&mut self, data: &[u8], seek: &mut usize) -> Option<Clipboard> {
+    fn read_clipboard(&mut self, data: &[u8], seek: &mut usize) -> Option<Clipboard> {
         if !self.version.clipboard {return None;}
         let mut c = Clipboard{start_measure: read_int(data, seek), ..Default::default()};
         c.stop_measure = read_int(data, seek);
@@ -127,7 +129,7 @@ impl Song {
 
     /// Read measure headers. The *measures* are written one after another, their number have been specified previously.
     /// * `measure_count`: number of measures to expect.
-    pub(crate) fn read_measure_headers(&mut self, data: &[u8], seek: &mut usize, measure_count: usize) {
+    fn read_measure_headers(&mut self, data: &[u8], seek: &mut usize, measure_count: usize) {
         //println!("read_measure_headers()");
         let mut previous: Option<MeasureHeader> = None;
         for i in 1..measure_count + 1  {
@@ -137,7 +139,7 @@ impl Song {
         }
     }
 
-    pub(crate) fn read_measure_headers_v5(&mut self, data: &[u8], seek: &mut usize, measure_count: usize, directions: &(HashMap<DirectionSign, i16>, HashMap<DirectionSign, i16>)) {
+    fn read_measure_headers_v5(&mut self, data: &[u8], seek: &mut usize, measure_count: usize, directions: &(HashMap<DirectionSign, i16>, HashMap<DirectionSign, i16>)) {
         //println!("read_measure_headers_v5()");
         let mut previous: Option<MeasureHeader> = None;
         for i in 1..measure_count + 1  {
@@ -157,7 +159,7 @@ impl Song {
     ///
     /// Each of these elements is present only if the corresponding bit is a 1. The different elements are written (if they are present) from lowest to highest bit.  
     /// Exceptions are made for the double bar and the beginning of repeat whose sole presence is enough, complementary data is not necessary.
-
+    ///
     /// * **Numerator of the (key) signature**: `byte`. Numerator of the (key) signature of the piece
     /// * **Denominator of the (key) signature**: `byte`. Denominator of the (key) signature of the piece
     /// * **End of repeat**: `byte`. Number of repeats until the previous Beginning of repeat. Nombre de renvoi jusqu'au début de renvoi précédent.
@@ -166,7 +168,7 @@ impl Song {
     /// 1) First is written an `integer` equal to the marker's name length + 1
     /// 2) a string containing the marker's name. Finally the marker's color is written.
     /// * **Tonality of the measure**: `byte`. This value encodes a key (signature) change on the current piece. It is encoded as: `0: C`, `1: G (#)`, `2: D (##)`, `-1: F (b)`, ...
-    pub(crate) fn read_measure_header(&mut self, data: &[u8], seek: &mut usize, number: usize, previous: Option<MeasureHeader>) -> (MeasureHeader, u8) {
+    fn read_measure_header(&mut self, data: &[u8], seek: &mut usize, number: usize, previous: Option<MeasureHeader>) -> (MeasureHeader, u8) {
         let flag = read_byte(data, seek);
         //println!("read_measure_header(), flags: {} \t N: {} \t Measure header count: {}", flag, number, self.measure_headers.len());
         let mut mh = MeasureHeader{number: number.to_u16().unwrap(), ..Default::default()};
@@ -197,7 +199,7 @@ impl Song {
     /// - Time signature beams: 4 `Bytes <byte>`. Appears If time signature was set, i.e. flags *0x01* and *0x02* are both set.
     /// - Blank `byte` if flag at *0x10* is set.
     /// - Triplet feel: `byte`. See `TripletFeel`.
-    pub(crate) fn read_measure_header_v5(&mut self, data: &[u8], seek: &mut usize, number: usize, previous: Option<MeasureHeader>) -> (MeasureHeader,u8) {
+    fn read_measure_header_v5(&mut self, data: &[u8], seek: &mut usize, number: usize, previous: Option<MeasureHeader>) -> (MeasureHeader,u8) {
         if previous.is_some() { *seek += 1; } //always
         let r = self.read_measure_header(data, seek, number, previous.clone());
         let mut mh = r.0;
@@ -249,7 +251,7 @@ impl Song {
     /// - Da Segno Segno al Fine
     /// - Da Coda
     /// - Da Double Coda
-    pub(crate) fn read_directions(&self, data: &[u8], seek: &mut usize) -> (HashMap<DirectionSign, i16>, HashMap<DirectionSign, i16>) {
+    fn read_directions(&self, data: &[u8], seek: &mut usize) -> (HashMap<DirectionSign, i16>, HashMap<DirectionSign, i16>) {
         let mut signs: HashMap<DirectionSign, i16> = HashMap::with_capacity(4);
         let mut from_signs: HashMap<DirectionSign, i16> = HashMap::with_capacity(15);
         //signs
@@ -276,7 +278,7 @@ impl Song {
         (signs, from_signs)
     }
 
-    pub(crate) fn write_measure_headers(&self, data: &mut Vec<u8>, version: &(u8,u8,u8)) {
+    fn write_measure_headers(&self, data: &mut Vec<u8>, version: &(u8,u8,u8)) {
         let mut previous: Option<usize> = None;
         for i in 0..self.measure_headers.len() {
             //self.current_measure_number = Some(self.tracks[0].measures[i].number);
@@ -348,7 +350,7 @@ impl Song {
         }
     }
 
-    pub(crate) fn write_clipboard(&self, data: &mut Vec<u8>, version: &(u8,u8,u8)) {
+    fn write_clipboard(&self, data: &mut Vec<u8>, version: &(u8,u8,u8)) {
         if let Some(c) = &self.clipboard {
             write_i32(data, c.start_measure.to_i32().unwrap());
             write_i32(data, c.stop_measure.to_i32().unwrap());
@@ -361,7 +363,7 @@ impl Song {
             }
         }
     }
-    pub(crate) fn write_directions(&self, data: &mut Vec<u8>) {
+    fn write_directions(&self, data: &mut Vec<u8>) {
         let mut map: HashMap<DirectionSign, i16>= HashMap::with_capacity(19);
         for i in 1..self.measure_headers.len() {
             if let Some(d) = &self.measure_headers[i].direction { map.insert(d.clone(), i.to_i16().unwrap()); }

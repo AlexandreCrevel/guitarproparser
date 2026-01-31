@@ -1,6 +1,6 @@
 use fraction::ToPrimitive;
 
-use crate::{io::*, gp::*, enums::*, rse::*, measure::*};
+use crate::{io::primitive::*, model::{song::*, enums::*, measure::*, rse::*}, audio::midi::*};
 
 /// Settings of the track.
 #[derive(Debug,Clone)]
@@ -73,15 +73,26 @@ impl Default for Track {
         settings: TrackSettings::default(),
     }}
 }
-impl Song {
+
+pub trait SongTrackOps {
+    fn read_tracks(&mut self, data: &[u8], seek: &mut usize, track_count: usize);
+    fn read_tracks_v5(&mut self, data: &[u8], seek: &mut usize, track_count: usize);
+    fn read_track(&mut self, data: &[u8], seek: &mut usize, number: usize);
+    fn read_track_v5(&mut self, data: &[u8], seek: &mut usize, number: usize);
+    fn write_tracks(&self, data: &mut Vec<u8>, version: &(u8,u8,u8));
+    fn write_track(&self, data: &mut Vec<u8>, number: usize);
+    fn write_track_v5(&self, data: &mut Vec<u8>, number: usize, version: &(u8,u8,u8));
+}
+
+impl SongTrackOps for Song {
     /// Read tracks. The tracks are written one after another, their number having been specified previously in :meth:`GP3File.readSong`.
     /// - `track_count`: number of tracks to expect.
-    pub(crate) fn read_tracks(&mut self, data: &[u8], seek: &mut usize, track_count: usize) {
+    fn read_tracks(&mut self, data: &[u8], seek: &mut usize, track_count: usize) {
         //println!("read_tracks()");
         for i in 0..track_count {self.read_track(data, seek, i);}
     }
 
-    pub(crate) fn read_tracks_v5(&mut self, data: &[u8], seek: &mut usize, track_count: usize) {
+    fn read_tracks_v5(&mut self, data: &[u8], seek: &mut usize, track_count: usize) {
         //println!("read_tracks_v5(): {:?} {}", self.version.number, self.version.number == (5,1,0));
         for i in 0..track_count { self.read_track_v5(data, seek, i); }
         *seek += if self.version.number == (5,0,0) {2} else {1};
@@ -127,7 +138,7 @@ impl Song {
         track.fret_count = read_int(data, seek).to_u8().unwrap();
         track.offset = read_int(data, seek);
         track.color = read_color(data, seek);
-        println!("\tInstrument: {} \t Strings: {}/{} ({:?})", self.channels[index].get_instrument_name(), string_count, track.strings.len(), track.strings);
+        //println!("\tInstrument: {} \t Strings: {}/{} ({:?})", self.channels[index].get_instrument_name(), string_count, track.strings.len(), track.strings);
         self.tracks.push(track);
     }
 
@@ -218,7 +229,7 @@ impl Song {
         self.tracks.push(track);
     }
 
-    pub(crate) fn write_tracks(&self, data: &mut Vec<u8>, version: &(u8,u8,u8)) {
+    fn write_tracks(&self, data: &mut Vec<u8>, version: &(u8,u8,u8)) {
         for i in 0..self.tracks.len() {
             //self.current_track = Some(i);
             if version.0 < 5 {self.write_track(data, i);}
