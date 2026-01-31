@@ -1,4 +1,17 @@
-use crate::gp::Song;
+use crate::Song;
+use crate::model::track::SongTrackOps;
+use crate::model::measure::SongMeasureOps;
+use crate::model::chord::SongChordOps;
+use crate::model::note::SongNoteOps;
+use crate::model::effects::SongEffectOps;
+use crate::model::beat::SongBeatOps;
+use crate::model::headers::SongHeaderOps;
+use crate::model::page::SongPageOps;
+use crate::model::mix_table::SongMixTableOps;
+use crate::model::rse::SongRseOps;
+use crate::model::lyric::SongLyricOps;
+use crate::audio::midi::SongMidiOps;
+use crate::io::gpif_import::SongGpifOps;
 use std::fs;
 use std::path::Path;
 

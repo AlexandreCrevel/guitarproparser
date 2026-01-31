@@ -1,6 +1,6 @@
 use fraction::ToPrimitive;
 
-use crate::{beat::*, gp::*, key_signature::*, io::*, enums::*};
+use crate::{model::{song::*, track::*, enums::*, beat::*, key_signature::*, chord::*}, io::primitive::*};
 
 const MAX_VOICES: usize = 2;
 
@@ -40,7 +40,17 @@ impl Default for Measure {fn default() -> Self { Measure {
     line_break: LineBreak::None
 }}}
 
-impl Song {
+pub trait SongMeasureOps {
+    fn read_measures(&mut self, data: &[u8], seek: &mut usize);
+    fn read_measure(&mut self, data: &[u8], seek: &mut usize, measure: &mut Measure, track_index: usize);
+    fn read_measure_v5(&mut self, data: &[u8], seek: &mut usize, measure: &mut Measure, track_index: usize);
+    fn read_voice(&mut self, data: &[u8], seek: &mut usize, voice: &mut Voice, start: &mut i64, track_index: usize);
+    fn write_measures(&self, data: &mut Vec<u8>, version: &(u8,u8,u8));
+    fn write_measure(&self, data: &mut Vec<u8>, track: usize, measure: usize, version: &(u8,u8,u8));
+    fn write_voice(&self, data: &mut Vec<u8>, track: usize, measure: usize, voice: usize, version: &(u8,u8,u8));
+}
+
+impl SongMeasureOps for Song {
     /// Read measures. Measures are written in the following order:
     /// - measure 1/track 1
     /// - measure 1/track 2
@@ -55,7 +65,7 @@ impl Song {
     /// - measure n/track 2
     /// - ...
     /// - measure n/track m
-    pub(crate) fn read_measures(&mut self, data: &[u8], seek: &mut usize) {
+    fn read_measures(&mut self, data: &[u8], seek: &mut usize) {
 
         for h in 0..self.measure_headers.len() {
             for t in 0..self.tracks.len() {
@@ -130,7 +140,7 @@ impl Song {
         self.current_beat_number = None;
     }
 
-    pub(crate) fn write_measures(&self, data: &mut Vec<u8>, version: &(u8,u8,u8)) {
+    fn write_measures(&self, data: &mut Vec<u8>, version: &(u8,u8,u8)) {
         for i in 0..self.tracks.len() {
             //self.current_track = Some(i);
             for m in 0..self.tracks[i].measures.len() {

@@ -1,6 +1,6 @@
 use std::io::{Read, Cursor};
 use zip::ZipArchive;
-use crate::gpif::Gpif;
+use crate::io::gpif::Gpif;
 use quick_xml::de::from_str;
 
 /// Reads a .gp (GP7+) file which is a ZIP archive containing 'Content/score.gpif'.

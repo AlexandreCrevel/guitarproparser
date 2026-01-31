@@ -1,6 +1,6 @@
 use fraction::ToPrimitive;
 
-use crate::{mix_table::*, effects::*, chord::*, key_signature::*, note::*, io::*, gp::*, enums::*};
+use crate::{model::{mix_table::*, effects::*, chord::*, key_signature::*, note::*, enums::*, song::*}, io::primitive::*};
 
 /// Parameters of beat display
 #[derive(Debug,Clone,PartialEq,Eq)]
@@ -21,8 +21,9 @@ impl Default for BeatDisplay { fn default() -> Self { BeatDisplay { break_beam:f
 pub struct BeatStroke {
     pub direction: BeatStrokeDirection,
     pub value: u16,
+    pub swap: bool,
 }
-impl Default for BeatStroke { fn default() -> Self { BeatStroke { direction: BeatStrokeDirection::None, value: 0 }}}
+impl Default for BeatStroke { fn default() -> Self { BeatStroke { direction: BeatStrokeDirection::None, value: 0, swap: false }}}
 impl BeatStroke {
     pub(crate) fn swap_direction(&mut self) {
         if self.direction == BeatStrokeDirection::Up {self.direction = BeatStrokeDirection::Down}
@@ -117,7 +118,24 @@ impl Beat {
     }
 }
 
-impl Song {
+pub trait SongBeatOps {
+    fn read_beat(&mut self, data: &[u8], seek: &mut usize, voice: &mut Voice, start: i64, track_index: usize) -> i64;
+    fn read_beat_v5(&mut self, data: &[u8], seek: &mut usize, voice: &mut Voice, start: &mut i64, track_index: usize) -> i64;
+    fn read_beat_effects_v3(&self, data: &[u8], seek: &mut usize, note_effect: &mut NoteEffect) -> BeatEffects;
+    fn read_beat_effects_v4(&self, data: &[u8], seek: &mut usize) -> BeatEffects;
+    fn read_beat_stroke(&self, data: &[u8], seek: &mut usize) -> BeatStroke;
+    fn stroke_value(&self, value: i8) -> u8;
+    fn read_tremolo_bar(&self, data: &[u8], seek: &mut usize) -> BendEffect;
+    fn write_beat_v3(&self, data: &mut Vec<u8>, beat: &Beat);
+    fn write_beat(&self, data: &mut Vec<u8>, beat: &Beat, strings: &[(i8,i8)], version: &(u8,u8,u8));
+    fn write_beat_effect_v3(&self, data: &mut  Vec<u8>, beat: &Beat);
+    fn write_beat_effect_v4(&self, data: &mut  Vec<u8>, beat: &Beat, version: &(u8,u8,u8));
+    fn write_tremolo_bar(&self, data: &mut Vec<u8>, bar: &Option<BendEffect>);
+    fn write_beat_stroke(&self, data: &mut Vec<u8>, stroke: &BeatStroke, version: &(u8,u8,u8));
+    fn from_stroke_value(value: u8) -> i8;
+}
+
+impl SongBeatOps for Song {
     /// Read beat. The first byte is the beat flags. It lists the data present in the current beat:
     /// - *0x01*: dotted notes- *0x02*: presence of a chord diagram
     /// - *0x04*: presence of a text
@@ -134,7 +152,7 @@ impl Song {
     /// - Text: `int-byte-size-string`.
     /// - Beat effects. See `BeatEffects::read()`.
     /// - Mix table change effect. See `MixTableChange::read()`.
-    pub(crate) fn read_beat(&mut self, data: &[u8], seek: &mut usize, voice: &mut Voice, start: i64, track_index: usize) -> i64 {
+    fn read_beat(&mut self, data: &[u8], seek: &mut usize, voice: &mut Voice, start: i64, track_index: usize) -> i64 {
         let flags = read_byte(data, seek);
         //println!("read_beat(),    flags: {} \t seek: {}", flags, *seek);
         //get a beat
@@ -183,7 +201,7 @@ impl Song {
     /// - *0x1000*: break secondary tuplet
     /// - *0x2000*: force tuplet bracket
     /// - Break secondary beams: `byte`. Appears if flag at *0x0800* is set. Signifies how much beams should be broken.
-    pub(crate) fn read_beat_v5(&mut self, data: &[u8], seek: &mut usize, voice: &mut Voice, start: &mut i64, track_index: usize) -> i64 {
+    fn read_beat_v5(&mut self, data: &[u8], seek: &mut usize, voice: &mut Voice, start: &mut i64, track_index: usize) -> i64 {
         let duration = self.read_beat(data, seek, voice, *start, track_index);
         //get the beat used in read_beat()
         let b = voice.beats.len() - 1;
@@ -321,7 +339,7 @@ impl Song {
         be
     }
 
-    pub(crate) fn write_beat_v3(&self, data: &mut Vec<u8>, beat: &Beat) {
+    fn write_beat_v3(&self, data: &mut Vec<u8>, beat: &Beat) {
         let mut flags = 0u8;
         if beat.duration.dotted {flags |= 0x01;}
         if beat.effect.is_chord() {flags |= 0x02;}
@@ -342,7 +360,7 @@ impl Song {
         self.write_notes(data, beat, &Vec::new(), &(3,0,0));
     }
 
-    pub(crate) fn write_beat(&self, data: &mut Vec<u8>, beat: &Beat, strings: &[(i8,i8)], version: &(u8,u8,u8)) {
+    fn write_beat(&self, data: &mut Vec<u8>, beat: &Beat, strings: &[(i8,i8)], version: &(u8,u8,u8)) {
         let mut flags = 0u8;
         if beat.duration.dotted {flags |= 0x01;}
         if beat.effect.is_chord() {flags |= 0x02;}
@@ -433,8 +451,8 @@ impl Song {
         if version.0 == 5 {stroke.swap_direction();}
         let mut stroke_down = 0i8;
         let mut stroke_up = 0i8;
-        if stroke.direction == BeatStrokeDirection::Up        { stroke_up   = Song::from_stroke_value(stroke.value.to_u8().unwrap()); }
-        else if stroke.direction == BeatStrokeDirection::Down { stroke_down = Song::from_stroke_value(stroke.value.to_u8().unwrap()); }
+        if stroke.direction == BeatStrokeDirection::Up        { stroke_up   = Self::from_stroke_value(stroke.value.to_u8().unwrap()); }
+        else if stroke.direction == BeatStrokeDirection::Down { stroke_down = Self::from_stroke_value(stroke.value.to_u8().unwrap()); }
         write_signed_byte(data, stroke_down);
         write_signed_byte(data, stroke_up);
     }

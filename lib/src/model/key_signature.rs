@@ -1,5 +1,5 @@
 use fraction::ToPrimitive;
-use crate::io::*;
+use crate::io::primitive::*;
 
 pub const DURATION_QUARTER_TIME: i64 = 960;
 //pub const DURATION_WHOLE: u8 = 1;

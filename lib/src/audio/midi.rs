@@ -1,6 +1,6 @@
 use fraction::ToPrimitive;
 
-use crate::{io::*, gp::*};
+use crate::{io::primitive::*, model::song::*};
 
 //MIDI channels
 
@@ -26,9 +26,9 @@ pub const CHANNEL_DEFAULT_NAMES: [&str; 128] = ["Piano", "Bright Piano", "Electr
                                             "Trumpet", "Trombone", "Tuba", "Muted Trumpet", "French Horn", "Brass Ensemble", "Syn Brass 1", "Syn Brass 2",
                                             "Soprano Sax", "Alto Sax", "Tenor Sax", "Baritone Sax",
                                             "Oboe", "English Horn", "Bassoon", "Clarinet", "Piccolo", "Flute", "Recorder", "Pan Flute", "Bottle Blow", "Shakuhachi", "Whistle", "Ocarina",
-                                            "Syn Square Wave", "Syn Saw Wave", "Syn Calliope", "Syn Chiff", "Syn Charang", "Syn Voice", "Syn Fifths Saw", "Syn Brass and Lead",
+                                            "Syn Square Wave", "Syn Square Wave", "Syn Calliope", "Syn Chiff", "Syn Charang", "Syn Voice", "Syn Fifths Saw", "Syn Brass and Lead",
                                             "Fantasia", "Warm Pad", "Polysynth", "Space Vox", "Bowed Glass", "Metal Pad", "Halo Pad", "Sweep Pad", "Ice Rain", "Soundtrack", "Crystal", "Atmosphere",
-                                            "Brightness", "Goblins", "Echo Drops", "Sci Fi",
+                                            "Brightness", "Goblins", "Echo Drops", "Sci Fu",
                                             "Sitar", "Banjo", "Shamisen", "Koto", "Kalimba",
                                             "Bag Pipe",
                                             "Fiddle",
@@ -45,7 +45,7 @@ pub const DEFAULT_PERCUSSION_CHANNEL: u8 = 9;
 pub struct MidiChannel {
     pub channel: u8,
     pub effect_channel: u8,
-    instrument: i32,
+    pub instrument: i32,
     pub volume: i8,
     pub balance: i8,
     pub chorus: i8,
@@ -58,10 +58,10 @@ impl Default for MidiChannel {
     fn default() -> Self { MidiChannel { channel: 0, effect_channel: 1, instrument: 25, volume: 104, balance: 64, chorus: 0, reverb: 0, phaser: 0, tremolo: 0, bank: 0, }}
 }
 impl MidiChannel {
-    pub(crate) fn is_percussion_channel(self) -> bool {
+    pub(crate) fn is_percussion_channel(&self) -> bool {
         (self.channel % 16) == DEFAULT_PERCUSSION_CHANNEL
     }
-    pub(crate) fn set_instrument(mut self, instrument: i32) {
+    pub(crate) fn set_instrument(&mut self, instrument: i32) {
         if instrument == -1 && self.is_percussion_channel() { self.instrument = 0; }
         else {self.instrument = instrument;}
     }
@@ -70,9 +70,16 @@ impl MidiChannel {
     pub(crate) fn get_instrument_name(&self) -> String {String::from(CHANNEL_DEFAULT_NAMES[self.instrument.to_usize().unwrap()])} //TODO: FIXME: does not seems OK
 }
 
-impl Song{
+pub trait SongMidiOps {
+    fn read_midi_channels(&mut self, data: &[u8], seek: &mut usize);
+    fn read_midi_channel(&self, data: &[u8], seek: &mut usize, channel: u8) -> MidiChannel;
+    fn read_channel(&mut self, data: &[u8], seek: &mut usize) -> usize;
+    fn write_midi_channels(&self, data: &mut Vec<u8>);
+}
+
+impl SongMidiOps for Song {
     /// Read all the MIDI channels
-    pub(crate) fn read_midi_channels(&mut self, data: &[u8], seek: &mut usize) { for i in 0u8..64u8 { self.channels.push(self.read_midi_channel(data, seek, i)); } }
+    fn read_midi_channels(&mut self, data: &[u8], seek: &mut usize) { for i in 0u8..64u8 { self.channels.push(self.read_midi_channel(data, seek, i)); } }
     /// Read MIDI channels. Guitar Pro format provides 64 channels (4 MIDI ports by 16 hannels), the channels are stored in this order:
     ///`port1/channel1`, `port1/channel2`, ..., `port1/channel16`, `port2/channel1`, ..., `port4/channel16`.
     ///
@@ -87,7 +94,7 @@ impl Song{
     /// * **Tremolo**: `byte`
     /// * **blank1**: `byte` => Backward compatibility with version 3.0
     /// * **blank2**: `byte` => Backward compatibility with version 3.0
-    pub(crate) fn read_midi_channel(&self, data: &[u8], seek: &mut usize, channel: u8) -> MidiChannel {
+    fn read_midi_channel(&self, data: &[u8], seek: &mut usize, channel: u8) -> MidiChannel {
         let instrument = read_int(data, seek);
         let mut c = MidiChannel{channel, effect_channel: channel, ..Default::default()};
         c.volume = read_signed_byte(data, seek); c.balance = read_signed_byte(data, seek);
@@ -99,7 +106,7 @@ impl Song{
     }
 
     /// Read MIDI channel. MIDI channel in Guitar Pro is represented by two integers. First is zero-based number of channel, second is zero-based number of channel used for effects.
-    pub(crate) fn read_channel(&mut self, data: &[u8], seek: &mut usize) -> usize { //TODO: fixme for writing
+    fn read_channel(&mut self, data: &[u8], seek: &mut usize) -> usize { //TODO: fixme for writing
         let index          = read_int(data, seek) - 1;
         let effect_channel = read_int(data, seek) - 1;
         if 0 <= index && index < self.channels.len().to_i32().unwrap() {
@@ -109,7 +116,7 @@ impl Song{
         index.to_usize().unwrap()
     }
 
-    pub(crate) fn write_midi_channels(&self, data: &mut Vec<u8>) {
+    fn write_midi_channels(&self, data: &mut Vec<u8>) {
         for i in 0..self.channels.len() {
             println!("writing channel: {:?}", self.channels[i]);
             if self.channels[i].is_percussion_channel() && self.channels[i].instrument == 0 {write_i32(data, -1);}
@@ -123,6 +130,8 @@ impl Song{
             write_placeholder_default(data, 2); //Backward compatibility with version 3.0
         }
     }
+}
 
+impl Song {
     fn from_channel_short(data: i8) -> i8 { ((data >> 3) - 1).clamp(-128, 127) + 1 }
 }

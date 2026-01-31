@@ -136,8 +136,8 @@ pub const VERSIONS: [((u8,u8,u8), bool, &str); 10] = [((3, 0, 0), false, "FICHIE
 /// * `data` - array of bytes
 /// * `seek` - cursor that will be incremented
 /// * returns version
-pub(crate) fn read_version_string(data: &[u8], seek: &mut usize) -> crate::headers::Version {
-    let mut v = crate::headers::Version {data: read_byte_size_string(data, seek, 30), number: (5,2,0), clipboard: false};
+pub(crate) fn read_version_string(data: &[u8], seek: &mut usize) -> crate::model::headers::Version {
+    let mut v = crate::model::headers::Version {data: read_byte_size_string(data, seek, 30), number: (5,2,0), clipboard: false};
     //println!("Version {} {}", n, s);
     //get the version
     for x in VERSIONS {
@@ -211,7 +211,7 @@ pub(crate) fn write_version(data: &mut Vec<u8>, version: (u8,u8,u8)) {
 
 #[cfg(test)]
 mod test {
-    use crate::io::*;
+    use super::*;
 
     #[test]
     fn test_read_byte_size_string() {

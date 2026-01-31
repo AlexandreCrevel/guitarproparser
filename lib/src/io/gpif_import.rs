@@ -1,14 +1,14 @@
-use crate::gp::Song;
-use crate::track::{Track as SongTrack};
-use crate::gpif::{Gpif, Bar, Voice, Beat, Note};
-use crate::measure::Measure;
-use crate::headers::MeasureHeader;
-use crate::beat::Beat as SongBeat;
-use crate::note::Note as SongNote;
 use std::collections::HashMap;
 
-impl Song {
-    pub fn read_gpif(&mut self, gpif: &Gpif) {
+use crate::model::{song::*, track::Track as SongTrack, measure::Measure, headers::MeasureHeader, beat::{Beat as SongBeat, Voice as SongVoice}, note::Note as SongNote};
+use crate::io::gpif::{Gpif, Bar, Voice, Beat, Note};
+
+pub trait SongGpifOps {
+    fn read_gpif(&mut self, gpif: &Gpif);
+}
+
+impl SongGpifOps for Song {
+    fn read_gpif(&mut self, gpif: &Gpif) {
         // 1. Metadata
         self.name = gpif.score.title.clone();
         self.artist = gpif.score.artist.clone();
@@ -79,7 +79,7 @@ impl Song {
 
                     for &vid in &voice_ids {
                          if vid < 0 { continue; } // -1 means no voice
-                         let mut s_voice = crate::beat::Voice::default();
+                         let mut s_voice = SongVoice::default();
                         
                          if let Some(g_voice) = voices_map.get(&vid) {
                              let beat_ids: Vec<i32> = g_voice.beats.split_whitespace()

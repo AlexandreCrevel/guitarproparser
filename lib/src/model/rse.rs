@@ -1,6 +1,7 @@
 use fraction::ToPrimitive;
 
-use crate::{io::*, gp::*, enums::*, track::*};
+use crate::{io::primitive::*, model::{song::*, enums::*, track::*}};
+// use crate::gp::*;
 
 /// Equalizer found in master effect and track effect.
 /// 
@@ -42,11 +43,27 @@ pub struct TrackRse {
 }
 impl Default for TrackRse { fn default() -> Self { TrackRse {instrument:RseInstrument::default(), humanize:0, auto_accentuation: Accentuation::None, equalizer:RseEqualizer{knobs:vec![0.0;3], ..Default::default()} }}}
 
-impl Song {
+pub trait SongRseOps {
+    fn read_rse_master_effect(&self, data: &[u8], seek: &mut usize) -> RseMasterEffect;
+    fn read_rse_equalizer(&self, data: &[u8], seek: &mut usize, knobs: u8) -> RseEqualizer;
+    fn unpack_volume_value(&self, value: i8) -> f32;
+    fn read_track_rse(&mut self, data: &[u8], seek: &mut usize, track: &mut Track);
+    fn read_rse_instrument(&mut self, data: &[u8], seek: &mut usize) -> RseInstrument;
+    fn read_rse_instrument_effect(&mut self, data: &[u8], seek: &mut usize, instrument: &mut RseInstrument);
+    fn write_rse_master_effect(&self, data: &mut Vec<u8>);
+    fn write_equalizer(&self, data: &mut Vec<u8>, equalizer: &RseEqualizer);
+    fn pack_volume_value(&self, value: f32) -> i8;
+    fn write_master_reverb(&self, data: &mut Vec<u8>);
+    fn write_track_rse(&self, data: &mut Vec<u8>, rse: &TrackRse, version: &(u8,u8,u8));
+    fn write_rse_instrument(&self, data: &mut Vec<u8>, instrument: &RseInstrument, version: &(u8,u8,u8));
+    fn write_rse_instrument_effect(&self, data: &mut Vec<u8>, instrument: &RseInstrument);
+}
+
+impl SongRseOps for Song {
     /// Read RSE master effect. Persistence of RSE master effect was introduced in Guitar Pro 5.1. It is read as:
     /// - Master volume: `int`. Values are in range from 0 to 200.
     /// - 10-band equalizer. See `read_equalizer()`.
-    pub(crate) fn read_rse_master_effect(&self, data: &[u8], seek: &mut usize) -> RseMasterEffect {
+    fn read_rse_master_effect(&self, data: &[u8], seek: &mut usize) -> RseMasterEffect {
         let mut me = RseMasterEffect::default();
         if self.version.number > (5,0,0) {
             me.volume = read_int(data, seek).to_f32().unwrap();
@@ -72,7 +89,7 @@ impl Song {
     /// - RSE instrument. See `readRSEInstrument`.
     /// - 3-band track equalizer. See `read_equalizer()`.
     /// - RSE instrument effect. See `read_rse_instrument_effect()`.
-    pub(crate) fn read_track_rse(&mut self, data: &[u8], seek: &mut usize, track: &mut Track) {
+    fn read_track_rse(&mut self, data: &[u8], seek: &mut usize, track: &mut Track) {
         track.rse.humanize = read_byte(data, seek);
         //println!("read_track_rse(), humanize: {} \t\t seek: {}", track.rse.humanize, *seek);
         *seek += 12; //read_int(data, seek); read_int(data, seek); read_int(data, seek);  //??? 4 bytes*3 //*seek += 12;
@@ -88,7 +105,7 @@ impl Song {
     /// - Unknown `int`.
     /// - Sound bank: `int`.
     /// - Effect number: `int`. Vestige of Guitar Pro 5.0 format.
-    pub(crate) fn read_rse_instrument(&mut self, data: &[u8], seek: &mut usize) -> RseInstrument {
+    fn read_rse_instrument(&mut self, data: &[u8], seek: &mut usize) -> RseInstrument {
         let mut instrument = RseInstrument{instrument: read_int(data, seek).to_i16().unwrap_or(0), ..Default::default()};
         instrument.unknown    = read_int(data, seek).to_i16().unwrap_or(0); //??? mostly 1
         instrument.sound_bank = read_int(data, seek).to_i16().unwrap_or(0);
@@ -103,14 +120,14 @@ impl Song {
     /// Read RSE instrument effect name. This feature was introduced in Guitar Pro 5.1.
     /// - Effect name: `int-byte-size-string`.
     /// - Effect category: `int-byte-size-string`.
-    pub(crate) fn read_rse_instrument_effect(&mut self, data: &[u8], seek: &mut usize, instrument: &mut RseInstrument) {
+    fn read_rse_instrument_effect(&mut self, data: &[u8], seek: &mut usize, instrument: &mut RseInstrument) {
         if self.version.number > (5,0,0) {
             instrument.effect =          read_int_byte_size_string(data, seek);
             instrument.effect_category = read_int_byte_size_string(data, seek);
         }
     }
 
-    pub(crate) fn write_rse_master_effect(&self, data: &mut Vec<u8>) {
+    fn write_rse_master_effect(&self, data: &mut Vec<u8>) {
         write_i32(data, if self.master_effect.volume == 0.0 {100} else {self.master_effect.volume.ceil().to_i32().unwrap()});
         write_i32(data, 0); //reverb?
         self.write_equalizer(data, &self.master_effect.equalizer);
@@ -123,11 +140,11 @@ impl Song {
     fn pack_volume_value(&self, value: f32) -> i8 {
         (-value * 10f32).round().to_i8().unwrap() //int(-round(value, 1) * 10)
     }
-    pub(crate) fn write_master_reverb(&self, data: &mut Vec<u8>) {
+    fn write_master_reverb(&self, data: &mut Vec<u8>) {
         write_i32(data, self.master_effect.reverb.to_i32().unwrap());
     }
 
-    pub(crate) fn write_track_rse(&self, data: &mut Vec<u8>, rse: &TrackRse, version: &(u8,u8,u8)) {
+    fn write_track_rse(&self, data: &mut Vec<u8>, rse: &TrackRse, version: &(u8,u8,u8)) {
         write_byte(data, rse.humanize);
         write_i32(data, 0); write_i32(data, 0); write_i32(data, 100);
         write_placeholder_default(data, 12);
@@ -137,7 +154,7 @@ impl Song {
             self.write_rse_instrument_effect(data, &rse.instrument);
         }
     }
-    pub(crate) fn write_rse_instrument(&self, data: &mut Vec<u8>, instrument: &RseInstrument, version: &(u8,u8,u8)) {
+    fn write_rse_instrument(&self, data: &mut Vec<u8>, instrument: &RseInstrument, version: &(u8,u8,u8)) {
         write_i32(data, instrument.instrument.to_i32().unwrap());
         write_i32(data, instrument.unknown.to_i32().unwrap());
         write_i32(data, instrument.sound_bank.to_i32().unwrap());
@@ -146,7 +163,7 @@ impl Song {
             write_placeholder_default(data, 1);
         } else {write_i32(data, instrument.effect_number.to_i32().unwrap());}
     }
-    pub(crate) fn write_rse_instrument_effect(&self, data: &mut Vec<u8>, instrument: &RseInstrument) { //version>5.0.0
+    fn write_rse_instrument_effect(&self, data: &mut Vec<u8>, instrument: &RseInstrument) { //version>5.0.0
         write_int_byte_size_string(data, &instrument.effect);
         write_int_byte_size_string(data, &instrument.effect_category);
     }
