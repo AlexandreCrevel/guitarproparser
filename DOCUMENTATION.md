@@ -14,7 +14,7 @@ A CLI is provided to inspect files and generate ASCII tablatures.
 
 **Usage:**
 ```bash
-cargo run -p cli --features clap -- --input path/to/file.gp5 --tab
+cargo run -p cli -- --input path/to/file.gp5 --tab
 ```
 
 **Options:**
@@ -56,6 +56,18 @@ fn main() {
 }
 ```
 
+### Traits and Extensions
+
+The library uses traits to extend `Song` with parsing and writing capabilities. This allows the core `Song` struct to remain clean while providing a large API for different formats and features.
+
+```rust
+use scorelib::model::song::Song;
+use scorelib::model::track::SongTrackOps;
+// ... other trait imports ...
+
+// Now song has .read_tracks(), .write_tracks(), etc.
+```
+
 ## 3. Architecture & Data Structures
 
 The data model follows a hierarchical structure typical of musical scores.
@@ -65,38 +77,38 @@ The data model follows a hierarchical structure typical of musical scores.
 
 ### key Structures
 
-#### `Song` (`lib/src/song.rs`)
+#### `Song` (`lib/src/model/song.rs`)
 The root object representing the entire file.
 - **Metadata**: `name`, `artist`, `album`, `author`, `copyright`, `writer`, `transcriber`, `comments`.
 - **Global Properties**: `tempo`, `key`, `version` (GP version tuple).
 - **Content**: `tracks` (`Vec<Track>`), `measure_headers` (`Vec<MeasureHeader>`).
 - **Channels**: `channels` (`Vec<MidiChannel>`) - MIDI instrument configuration.
 
-#### `Track` (`lib/src/track.rs`)
+#### `Track` (`lib/src/model/track.rs`)
 Represents a single instrument (e.g., "Electric Guitar").
 - **Identity**: `name`, `color`, `channel_index`.
 - **Instrument**: `strings` (`Vec<(i8, i8)>` - string number & midi tuning), `fret_count`, `capo`.
 - **Content**: `measures` (`Vec<Measure>`).
 - **Settings**: `TrackSettings` (tablature/notation visibility, etc.).
 
-#### `Measure` (`lib/src/measure.rs`)
+#### `Measure` (`lib/src/model/measure.rs`)
 Represents a bar of music for a specific track.
 *Note: Global measure info (time signature, key signature, repeat bars) is stored in `Song.measure_headers`.*
 - **Structure**: `voices` (`Vec<Voice>`) - usually contains 1 or 2 voices.
 - **Properties**: `clef`, `line_break`.
 - **Position**: `start` (accumulated time).
 
-#### `Voice` (`lib/src/beat.rs`)
+#### `Voice` (`lib/src/model/beat.rs`)
 A rhythmic container within a measure. GP5 supports up to 2 voices (e.g., Lead + Bass in one staff).
 - **Content**: `beats` (`Vec<Beat>`).
 
-#### `Beat` (`lib/src/beat.rs`)
+#### `Beat` (`lib/src/model/beat.rs`)
 A rhythmic unit containing notes.
 - **Rhythm**: `duration` (`Duration` struct), `tuplets`.
 - **Content**: `notes` (`Vec<Note>`), `text` (lyrics/text above), `effect` (`BeatEffects` - e.g., mix table changes, strokes).
 - **Properties**: `status` (Normal, Rest, Empty).
 
-#### `Note` (`lib/src/note.rs`)
+#### `Note` (`lib/src/model/note.rs`)
 A single sound event.
 - **Pitch**: `value` (fret number 0-99), `string` (string index 1-N).
 - **Dynamics**: `velocity` (MIDI velocity).
@@ -107,14 +119,14 @@ A single sound event.
 
 Effects are categorized by where they apply:
 
-- **Note Effects** (`lib/src/note.rs` -> `NoteEffect`):
+- **Note Effects** (`lib/src/model/note.rs` -> `NoteEffect`):
   - `bend`: `BendEffect` (points, type).
   - `grace`: `GraceEffect` (fret, duration, transition).
   - `slides`: `Vec<SlideType>`.
   - `harmonic`: `HarmonicEffect` (Natural, Artificial, Tapped, Pinch, Semi).
   - `hammer`/`pull_off`, `palm_mute`, `staccato`, `let_ring`, `vibrato`, `trill`, `tremolo_picking`.
 
-- **Beat Effects** (`lib/src/beat.rs` -> `BeatEffects`):
+- **Beat Effects** (`lib/src/model/beat.rs` -> `BeatEffects`):
   - `stroke`: Up/Down strums.
   - `mix_table_change`: Tempo, Volume, Pan, Instrument automation changes.
   - `pick_stroke`.
@@ -134,9 +146,9 @@ The parsing is sequential. Functions take a `data: &[u8]` slice and a mutable `s
 
 ## 6. Supported Formats
 
-| Feature | GP3 (`.gp3`) | GP4 (`.gp4`) | GP5 (`.gp5`) | GPX/GP (`.gpx`/`.gp`) |
+| Feature | GP3 (`.gp3`) | GP4 (`.gp4`) | GP5 (`.gp5`) | GP6/GP7 (`.gpx`/`.gp`) |
 |---------|--------------|--------------|--------------|-----------------------|
-| **Read** | ✅ Full | ✅ Full | ✅ High | ❌ Not Implemented |
+| **Read** | ✅ Full | ✅ Full | ✅ High | ✅ Initial (experimental) |
 | **Write** | ⚠️ Partial | ⚠️ Partial | ⚠️ Partial | ❌ Not Implemented |
 
 **Known Limitations in GP5:**
