@@ -89,14 +89,14 @@ impl Song {
     /// - Sound bank: `int`.
     /// - Effect number: `int`. Vestige of Guitar Pro 5.0 format.
     pub(crate) fn read_rse_instrument(&mut self, data: &[u8], seek: &mut usize) -> RseInstrument {
-        let mut instrument = RseInstrument{instrument: read_int(data, seek).to_i16().unwrap(), ..Default::default()};
-        instrument.unknown    = read_int(data, seek).to_i16().unwrap(); //??? mostly 1
-        instrument.sound_bank = read_int(data, seek).to_i16().unwrap();
+        let mut instrument = RseInstrument{instrument: read_int(data, seek).to_i16().unwrap_or(0), ..Default::default()};
+        instrument.unknown    = read_int(data, seek).to_i16().unwrap_or(0); //??? mostly 1
+        instrument.sound_bank = read_int(data, seek).to_i16().unwrap_or(0);
         //println!("read_rse_instrument(), instrument: {} {} {} \t\t seek: {}", instrument.instrument, instrument.unknown, instrument.sound_bank, *seek);
         if self.version.number == (5,0,0) {
             instrument.effect_number = read_short(data, seek);
             *seek += 1;
-        } else {instrument.effect_number = read_int(data, seek).to_i16().unwrap();}
+        } else {instrument.effect_number = read_int(data, seek).to_i16().unwrap_or(0);}
         //println!("read_rse_instrument(), instrument.effect_number: {} \t\t seek: {}", instrument.effect_number, *seek);
         instrument
     }

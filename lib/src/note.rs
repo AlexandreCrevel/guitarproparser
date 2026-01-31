@@ -107,9 +107,9 @@ impl Song {
     /// - *0x40*: 1th string
     /// - *0x80*: *blank*
     pub(crate) fn read_notes(&mut self, data: &[u8], seek: &mut usize, track_index: usize, beat: &mut Beat, duration: &Duration, note_effect: NoteEffect) {
-        let flags = read_byte(data, seek);
         //println!("read_notes(), flags: {}", flags);
         for i in 0..self.tracks[track_index].strings.len() {
+            let flags = read_byte(data, seek);
             if (flags & 1 << (7 - self.tracks[track_index].strings[i].0)) > 0 {
                 let mut note = Note{effect: note_effect.clone(), ..Default::default()};
                 if self.version.number < (5,0,0) {self.read_note(data, seek, &mut note, self.tracks[track_index].strings[i], track_index);}

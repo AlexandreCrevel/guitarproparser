@@ -110,7 +110,10 @@ impl Song {
             if      self.version.number.0 == 3 { self.read_new_format_chord_v3(data, seek, &mut c); }
             else                               { self.read_new_format_chord_v4(data, seek, &mut c);}
         }
-        else {self.read_old_format_chord(data, seek, &mut c);}
+        else {
+            if self.version.number.0 == 3 { read_byte(data, seek); }
+            self.read_old_format_chord(data, seek, &mut c);
+        }
         c
     }
     /// Read chord diagram encoded in GP3 format. Chord diagram is read as follows:
@@ -119,11 +122,11 @@ impl Song {
     /// - List of frets: 6 `ints`. Frets are listed in order: fret on the string 1, fret on the string 2, ..., fret on the
     ///   string 6. If string is untouched then the values of fret is *-1*.
     fn read_old_format_chord(&self, data: &[u8], seek: &mut usize, chord: &mut Chord) {
-        chord.name = read_int_size_string(data, seek);
-        chord.first_fret = Some(read_int(data, seek).to_u8().unwrap());
+        chord.name = read_int_byte_size_string(data, seek);
+        chord.first_fret = Some(read_int(data, seek) as u8);
         if chord.first_fret.is_some() {
             for i in 0u8..6u8 {
-                let fret = read_int(data, seek).to_i8().unwrap();
+                let fret = read_int(data, seek) as i8;
                 if i < chord.strings.len().to_u8().unwrap() {chord.strings.push(fret);} //chord.strings[i] = fret;
             }
         }

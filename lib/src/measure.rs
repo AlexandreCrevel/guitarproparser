@@ -58,8 +58,8 @@ impl Song {
     pub(crate) fn read_measures(&mut self, data: &[u8], seek: &mut usize) {
         let mut start = DURATION_QUARTER_TIME;
         for h in 0..self.measure_headers.len() {
-            self.measure_headers[h].start = start;
             for t in 0..self.tracks.len() {
+                //println!("Reading measure H:{} T:{} Seek:{}", h, t, seek);
                 self.current_track = Some(t);
                 let mut m = Measure{track_index:t, header_index:h, ..Default::default()};
                 self.current_measure_number = Some(m.number);
@@ -114,7 +114,11 @@ impl Song {
     }
 
     fn read_voice(&mut self, data: &[u8], seek: &mut usize, voice: &mut Voice, start: &mut i64, track_index: usize) {
-        let beats = read_int(data, seek).to_usize().unwrap();
+        let beats = read_int(data, seek).to_usize().unwrap_or(0);
+        //Sanity check
+        if beats > 256 {
+            return;
+        }
         for i in 0..beats {
             self.current_beat_number = Some(i + 1);
             //println!("read_measure() read_voice(), start: {}", measure.start);

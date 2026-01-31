@@ -123,20 +123,20 @@ impl Song {
         //tempo
         if self.version.number >= (5,0,0) {mtc.tempo_name = read_int_byte_size_string(data, seek);}
         let b = read_int(data, seek);
-        if b >= 0 {mtc.tempo = Some(MixTableItem{value: b.to_u8().unwrap(), ..Default::default()});}
+        if b >= 0 {mtc.tempo = Some(MixTableItem{value: b.clamp(0, 255) as u8, ..Default::default()});}
     }
     /// Read mix table change durations. Durations are read for each non-null `MixTableItem`. Durations are encoded in `signed-byte`.
     /// 
     /// If tempo did change, then one :ref:`bool` is read. If it's true, then tempo change won't be displayed on the score.
     fn read_mix_table_change_durations(&self, data: &[u8], seek: &mut usize, mtc: &mut MixTableChange) {
-        if let Some(ref mut item) = mtc.volume  { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
-        if let Some(ref mut item) = mtc.balance { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
-        if let Some(ref mut item) = mtc.chorus  { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
-        if let Some(ref mut item) = mtc.reverb  { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
-        if let Some(ref mut item) = mtc.phaser  { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
-        if let Some(ref mut item) = mtc.tremolo { item.duration = read_signed_byte(data, seek).to_u8().unwrap(); }
+        if let Some(ref mut item) = mtc.volume  { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.balance { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.chorus  { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.reverb  { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.phaser  { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
+        if let Some(ref mut item) = mtc.tremolo { item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0); }
         if let Some(ref mut item) = mtc.tempo {
-            item.duration = read_signed_byte(data, seek).to_u8().unwrap();
+            item.duration = read_signed_byte(data, seek).to_u8().unwrap_or(0);
             mtc.hide_tempo = false;
             if self.version.number >= (5,0,0) { mtc.hide_tempo = read_bool(data, seek); }
         }

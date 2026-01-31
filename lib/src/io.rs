@@ -8,7 +8,7 @@ use encoding_rs::*;
 /// * `seek` - start position to read
 /// * returns the read byte as u8
 pub(crate) fn read_byte(data: &[u8], seek: &mut usize ) -> u8 {
-    if data.len() < *seek {panic!("End of filee reached");}
+    if data.len() < *seek {panic!("End of file reached");}
     let b = data[*seek];
     *seek += 1;
     b
@@ -86,7 +86,10 @@ pub(crate) fn read_int_size_string(data: &[u8], seek: &mut usize) -> String {
 
 /// Read length of the string increased by 1 and stored in 1 integer followed by length of the string in 1 byte and finally followed by character bytes.
 pub(crate) fn read_int_byte_size_string(data: &[u8], seek: &mut usize) -> String {
-    let s = (read_int(data, seek) - 1).to_usize().unwrap();
+    let val = read_int(data, seek);
+    if val <= 0 { return String::new(); }
+    let s = (val - 1).to_usize().unwrap_or(0);
+    if *seek + 1 + s > data.len() { return String::new(); } // Safety check
     read_byte_size_string(data, seek, s)
 }
 

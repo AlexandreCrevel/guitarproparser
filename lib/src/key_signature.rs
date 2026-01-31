@@ -116,7 +116,10 @@ impl Duration {
 /// If flag at *0x20* is true, the tuplet is read
 pub(crate) fn read_duration(data: &[u8], seek: &mut usize, flags: u8) -> Duration {
     //println!("read_duration()");
-    let mut d = Duration{value: 1 << (read_signed_byte(data, seek) + 2), ..Default::default()};
+    let b = read_signed_byte(data, seek);
+    let shift = b + 2;
+    let val = if shift >= 0 && shift < 16 { 1u16 << shift } else { 1u16 }; // Fallback to 1 (whole note?) or whatever safe
+    let mut d = Duration{value: val, ..Default::default()};
     //let b = read_signed_byte(data, seek); println!("B: {}", b); d.value = 1 << (b + 2);
     d.dotted = (flags & 0x01) == 0x01;
     if (flags & 0x20) == 0x20 {

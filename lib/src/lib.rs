@@ -14,6 +14,10 @@ pub mod rse;
 pub mod note;
 pub mod lyric;
 pub mod beat;
+pub mod gpif;
+pub mod gpif_import;
+pub mod gpx_read;
+pub mod test_audit;
 
 #[cfg(test)]
 mod test {
@@ -517,5 +521,24 @@ mod test {
         let out = song.write((3,0,0), None);
         assert_eq!(out, data[0..out.len()]);
         song.read_gp3(&out);
+    }
+    #[test]
+    fn test_gp7_read() {
+        let mut song = Song::default();
+        let data = read_file(String::from("test/keysig.gp"));
+        song.read_gp(&data);
+        
+        println!("Version: {:?}", song.version);
+        println!("Name: {}", song.name);
+        println!("Tracks: {}", song.tracks.len());
+        println!("Measures: {}", song.measure_headers.len());
+        if !song.tracks.is_empty() {
+            println!("Track 1 measures: {}", song.tracks[0].measures.len());
+            // println!("Notes in T1M1: {:?}", song.tracks[0].measures[0].voices[0].beats);
+        }
+
+        assert_eq!(song.tracks.len(), 1);
+        assert_eq!(song.measure_headers.len(), 32);
+        assert_eq!(song.tracks[0].measures.len(), 32);
     }
 }
