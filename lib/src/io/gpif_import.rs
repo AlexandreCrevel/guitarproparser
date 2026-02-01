@@ -62,7 +62,15 @@ fn parse_ids(s: &str) -> Vec<i32> {
         .collect()
 }
 
-/// Parse slide flags bitmask (same encoding as GP5).
+/// Parse slide flags bitmask into a list of `SlideType` values.
+///
+/// Uses the same encoding as GP5 binary format:
+/// - bit 0 (0x01): Shift slide to next note
+/// - bit 1 (0x02): Legato slide to next note
+/// - bit 2 (0x04): Slide out downwards
+/// - bit 3 (0x08): Slide out upwards
+/// - bit 4 (0x10): Slide in from below
+/// - bit 5 (0x20): Slide in from above
 fn parse_slide_flags(flags: i32) -> Vec<SlideType> {
     let mut v = Vec::with_capacity(6);
     if (flags & 0x01) != 0 { v.push(SlideType::ShiftSlideTo); }
@@ -74,7 +82,9 @@ fn parse_slide_flags(flags: i32) -> Vec<SlideType> {
     v
 }
 
-/// Parse harmonic type string from GPIF.
+/// Parse a GPIF harmonic type string (e.g. "Natural", "Artificial", "Pinch")
+/// into a `HarmonicEffect`. Falls back to `Natural` for unrecognised values.
+/// "Feedback" is mapped to `Pinch` as Guitar Pro treats them equivalently.
 fn parse_harmonic_type(htype: &str) -> HarmonicEffect {
     let kind = match htype {
         "Natural" => HarmonicType::Natural,
@@ -382,97 +392,97 @@ fn convert_beat(
     notes_map: &HashMap<i32, &Note>,
     current_velocity: &mut i16,
 ) -> SongBeat {
-        let mut s_beat = SongBeat::default();
+    let mut s_beat = SongBeat::default();
 
-        // Duration from Rhythm
-        if let Some(rhythm_ref) = &g_beat.rhythm {
-            if let Some(rhythm) = rhythms_map.get(&rhythm_ref.r#ref) {
-                s_beat.duration.value = note_value_to_duration(&rhythm.note_value);
-                if let Some(dot) = &rhythm.augmentation_dot {
-                    match dot.count {
-                        1 => s_beat.duration.dotted = true,
-                        2 => s_beat.duration.double_dotted = true,
-                        _ => {}
-                    }
-                }
-                if let Some(tuplet) = &rhythm.primary_tuplet {
-                    s_beat.duration.tuplet_enters = tuplet.num as u8;
-                    s_beat.duration.tuplet_times = tuplet.den as u8;
-                }
-            }
-        }
-
-        // Dynamic
-        if let Some(dyn_str) = &g_beat.dynamic {
-            *current_velocity = dynamic_to_velocity(dyn_str);
-        }
-
-        // Grace notes
-        let is_grace_beat = g_beat.grace_notes.is_some();
-        let grace_on_beat = g_beat.grace_notes.as_deref() == Some("OnBeat");
-
-        // Text
-        if let Some(text) = &g_beat.free_text {
-            s_beat.text = text.clone();
-        }
-
-        // Fade in
-        if let Some(fadding) = &g_beat.fadding {
-            if fadding == "FadeIn" {
-                s_beat.effect.fade_in = true;
-            }
-        }
-
-        // Beat properties
-        if let Some(beat_props) = &g_beat.properties {
-            for bp in &beat_props.properties {
-                match bp.name.as_str() {
-                    "Brush" => {
-                        if let Some(dir) = &bp.direction {
-                            s_beat.effect.stroke.direction = match dir.as_str() {
-                                "Down" => BeatStrokeDirection::Down,
-                                "Up" => BeatStrokeDirection::Up,
-                                _ => BeatStrokeDirection::None,
-                            };
-                            s_beat.effect.stroke.value = DURATION_EIGHTH as u16;
-                        }
-                    }
-                    "Rasgueado" => {
-                        s_beat.effect.has_rasgueado = true;
-                    }
-                    "PickStroke" => {
-                        if let Some(dir) = &bp.direction {
-                            s_beat.effect.pick_stroke = match dir.as_str() {
-                                "Down" => BeatStrokeDirection::Down,
-                                "Up" => BeatStrokeDirection::Up,
-                                _ => BeatStrokeDirection::None,
-                            };
-                        }
-                    }
+    // Duration from Rhythm
+    if let Some(rhythm_ref) = &g_beat.rhythm {
+        if let Some(rhythm) = rhythms_map.get(&rhythm_ref.r#ref) {
+            s_beat.duration.value = note_value_to_duration(&rhythm.note_value);
+            if let Some(dot) = &rhythm.augmentation_dot {
+                match dot.count {
+                    1 => s_beat.duration.dotted = true,
+                    2 => s_beat.duration.double_dotted = true,
                     _ => {}
                 }
             }
+            if let Some(tuplet) = &rhythm.primary_tuplet {
+                s_beat.duration.tuplet_enters = tuplet.num as u8;
+                s_beat.duration.tuplet_times = tuplet.den as u8;
+            }
         }
+    }
 
-        // Notes
-        match &g_beat.notes {
-            Some(notes_str) => {
-                let note_ids = parse_ids(notes_str);
-                s_beat.status = if note_ids.is_empty() { BeatStatus::Rest } else { BeatStatus::Normal };
+    // Dynamic
+    if let Some(dyn_str) = &g_beat.dynamic {
+        *current_velocity = dynamic_to_velocity(dyn_str);
+    }
 
-                for &nid in &note_ids {
-                    if let Some(g_note) = notes_map.get(&nid) {
-                        let s_note = convert_note(g_note, *current_velocity, is_grace_beat, grace_on_beat);
-                        s_beat.notes.push(s_note);
+    // Grace notes
+    let is_grace_beat = g_beat.grace_notes.is_some();
+    let grace_on_beat = g_beat.grace_notes.as_deref() == Some("OnBeat");
+
+    // Text
+    if let Some(text) = &g_beat.free_text {
+        s_beat.text = text.clone();
+    }
+
+    // Fade in
+    if let Some(fadding) = &g_beat.fadding {
+        if fadding == "FadeIn" {
+            s_beat.effect.fade_in = true;
+        }
+    }
+
+    // Beat properties
+    if let Some(beat_props) = &g_beat.properties {
+        for bp in &beat_props.properties {
+            match bp.name.as_str() {
+                "Brush" => {
+                    if let Some(dir) = &bp.direction {
+                        s_beat.effect.stroke.direction = match dir.as_str() {
+                            "Down" => BeatStrokeDirection::Down,
+                            "Up" => BeatStrokeDirection::Up,
+                            _ => BeatStrokeDirection::None,
+                        };
+                        s_beat.effect.stroke.value = DURATION_EIGHTH as u16;
                     }
                 }
-            }
-            None => {
-                s_beat.status = BeatStatus::Rest;
+                "Rasgueado" => {
+                    s_beat.effect.has_rasgueado = true;
+                }
+                "PickStroke" => {
+                    if let Some(dir) = &bp.direction {
+                        s_beat.effect.pick_stroke = match dir.as_str() {
+                            "Down" => BeatStrokeDirection::Down,
+                            "Up" => BeatStrokeDirection::Up,
+                            _ => BeatStrokeDirection::None,
+                        };
+                    }
+                }
+                _ => {}
             }
         }
+    }
 
-        s_beat
+    // Notes
+    match &g_beat.notes {
+        Some(notes_str) => {
+            let note_ids = parse_ids(notes_str);
+            s_beat.status = if note_ids.is_empty() { BeatStatus::Rest } else { BeatStatus::Normal };
+
+            for &nid in &note_ids {
+                if let Some(g_note) = notes_map.get(&nid) {
+                    let s_note = convert_note(g_note, *current_velocity, is_grace_beat, grace_on_beat);
+                    s_beat.notes.push(s_note);
+                }
+            }
+        }
+        None => {
+            s_beat.status = BeatStatus::Rest;
+        }
+    }
+
+    s_beat
 }
 
 fn convert_note(g_note: &Note, velocity: i16, is_grace_beat: bool, grace_on_beat: bool) -> SongNote {
@@ -516,7 +526,7 @@ fn convert_note(g_note: &Note, velocity: i16, is_grace_beat: bool, grace_on_beat
             "HopoOrigin" | "HopoDestination" => {
                 if prop.enable.is_some() { s_note.effect.hammer = true; }
             }
-            "Dead" => {
+            "Dead" | "Muted" => {
                 if prop.enable.is_some() { s_note.kind = NoteType::Dead; }
             }
             _ => {}

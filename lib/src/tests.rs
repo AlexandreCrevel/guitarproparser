@@ -662,16 +662,47 @@ fn test_gpx_heavy_accent() {
 fn test_gpx_ghost_note() {
     let song = read_gpx("test/ghost-note.gpx");
     assert!(!song.tracks.is_empty());
+    let has_ghost = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.effect.ghost_note)
+                })
+            })
+        })
+    });
+    assert!(has_ghost, "ghost-note.gpx should contain at least one ghost note");
 }
 #[test]
 fn test_gpx_dead_note() {
+    use crate::model::enums::NoteType;
     let song = read_gpx("test/dead-note.gpx");
     assert!(!song.tracks.is_empty());
+    let has_dead = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.kind == NoteType::Dead)
+                })
+            })
+        })
+    });
+    assert!(has_dead, "dead-note.gpx should contain at least one dead note");
 }
 #[test]
 fn test_gpx_trill() {
     let song = read_gpx("test/trill.gpx");
     assert!(!song.tracks.is_empty());
+    let has_trill = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.effect.trill.is_some())
+                })
+            })
+        })
+    });
+    assert!(has_trill, "trill.gpx should contain at least one trill note");
 }
 #[test]
 fn test_gpx_tremolos() {
@@ -682,21 +713,65 @@ fn test_gpx_tremolos() {
 fn test_gpx_grace() {
     let song = read_gpx("test/grace.gpx");
     assert!(!song.tracks.is_empty());
+    let has_grace = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.effect.grace.is_some())
+                })
+            })
+        })
+    });
+    assert!(has_grace, "grace.gpx should contain at least one grace note");
 }
 #[test]
 fn test_gpx_grace_before_beat() {
     let song = read_gpx("test/grace-before-beat.gpx");
     assert!(!song.tracks.is_empty());
+    let has_grace_before = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| {
+                        n.effect.grace.as_ref().map_or(false, |g| !g.is_on_beat)
+                    })
+                })
+            })
+        })
+    });
+    assert!(has_grace_before, "grace-before-beat.gpx should contain a grace note before the beat");
 }
 #[test]
 fn test_gpx_grace_on_beat() {
     let song = read_gpx("test/grace-on-beat.gpx");
     assert!(!song.tracks.is_empty());
+    let has_grace_on = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| {
+                        n.effect.grace.as_ref().map_or(false, |g| g.is_on_beat)
+                    })
+                })
+            })
+        })
+    });
+    assert!(has_grace_on, "grace-on-beat.gpx should contain a grace note on the beat");
 }
 #[test]
 fn test_gpx_artificial_harmonic() {
     let song = read_gpx("test/artificial-harmonic.gpx");
     assert!(!song.tracks.is_empty());
+    let has_harmonic = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.effect.harmonic.is_some())
+                })
+            })
+        })
+    });
+    assert!(has_harmonic, "artificial-harmonic.gpx should contain at least one harmonic note");
 }
 #[test]
 fn test_gpx_high_pitch() {
@@ -900,6 +975,19 @@ fn test_gpx_free_time() {
 fn test_gpx_dynamic() {
     let song = read_gpx("test/dynamic.gpx");
     assert!(!song.tracks.is_empty());
+    // Verify that notes have varying velocities (not all the same default)
+    let velocities: Vec<i16> = song.tracks.iter().flat_map(|t| {
+        t.measures.iter().flat_map(|m| {
+            m.voices.iter().flat_map(|v| {
+                v.beats.iter().flat_map(|b| {
+                    b.notes.iter().map(|n| n.velocity)
+                })
+            })
+        })
+    }).collect();
+    assert!(!velocities.is_empty(), "dynamic.gpx should contain notes");
+    let has_varying = velocities.iter().any(|&v| v != velocities[0]);
+    assert!(has_varying, "dynamic.gpx should have varying velocities across notes");
 }
 #[test]
 fn test_gpx_crescendo_diminuendo() {

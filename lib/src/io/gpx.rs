@@ -85,7 +85,11 @@ fn decompress_bcfz(data: &[u8]) -> Result<Vec<u8>, String> {
         return Err(format!("Expected BCFZ magic, got {:?}", &data[0..4]));
     }
 
-    let expected_len = i32::from_le_bytes([data[4], data[5], data[6], data[7]]) as usize;
+    let raw_len = i32::from_le_bytes([data[4], data[5], data[6], data[7]]);
+    if raw_len < 0 {
+        return Err(format!("BCFZ: negative expected length {}", raw_len));
+    }
+    let expected_len = raw_len as usize;
     let mut output = Vec::with_capacity(expected_len);
     let mut bits = BitStream::new(&data[8..]);
 
@@ -161,7 +165,12 @@ fn parse_bcfs(data: &[u8]) -> Result<Vec<BcfsFile>, String> {
         let entry_type = read_le_i32(disk, sector_offset);
 
         if entry_type == 2 {
-            // File directory entry
+            // File directory entry — requires at least 0x98 bytes from sector_offset
+            if sector_offset + 0x98 > disk.len() {
+                sector_offset += SECTOR_SIZE;
+                continue;
+            }
+
             let name_start = sector_offset + 4;
             let name_end = (name_start + 127).min(disk.len());
             let name_bytes = &disk[name_start..name_end];
