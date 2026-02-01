@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-`guitarproparser` is a Rust library (`scorelib`) and CLI tool (`score_tool`) for reading and writing Guitar Pro files (`.gp3`, `.gp4`, `.gp5`). It provides a comprehensive data structure to represent musical partitutres (tablature and notation).
+`guitarproparser` is a Rust library (`scorelib`) and CLI tool (`score_tool`) for reading and writing Guitar Pro files (`.gp3`, `.gp4`, `.gp5`) and reading newer formats (`.gpx`, `.gp`). It provides a comprehensive data structure to represent musical partitutres (tablature and notation).
 
 This documentation is designed to be exhaustive for both human developers and AI coding assistants needing to understand the codebase.
 
@@ -27,12 +27,13 @@ cargo run -p cli -- --input path/to/file.gp5 --tab
 Add the library to your `Cargo.toml`:
 ```toml
 [dependencies]
-lib = { path = "path/to/guitarproparser/lib" } # Rename 'lib' to 'scorelib' recommended
+scorelib = { path = "../lib" } # Adjust path as needed
 ```
 
 **Basic Usage:**
 ```rust
-use scorelib::gp::Song;
+use scorelib::Song; // Main entry point
+use scorelib::SongTrackOps; // Trait for track operations
 use std::fs;
 use fraction::ToPrimitive; // crate 'fraction' is used for durations
 
@@ -40,8 +41,8 @@ fn main() {
     let mut song = Song::default();
     let data = fs::read("clementi.gp5").expect("File not found");
     
-    // Auto-detect format via extension usually, but here calling specific reader:
-    song.read_gp5(&data);
+    // Auto-detect format via extension in your app logic, or call specific reader:
+    song.read_gp5(&data).expect("Parsing failed");
     
     println!("Song: {}", song.name);
     
@@ -61,8 +62,7 @@ fn main() {
 The library uses traits to extend `Song` with parsing and writing capabilities. This allows the core `Song` struct to remain clean while providing a large API for different formats and features.
 
 ```rust
-use scorelib::model::song::Song;
-use scorelib::model::track::SongTrackOps;
+use scorelib::{Song, SongTrackOps, SongMeasureOps};
 // ... other trait imports ...
 
 // Now song has .read_tracks(), .write_tracks(), etc.
@@ -146,14 +146,16 @@ The parsing is sequential. Functions take a `data: &[u8]` slice and a mutable `s
 
 ## 6. Supported Formats
 
-| Feature | GP3 (`.gp3`) | GP4 (`.gp4`) | GP5 (`.gp5`) | GP6/GP7 (`.gpx`/`.gp`) |
-|---------|--------------|--------------|--------------|-----------------------|
-| **Read** | ✅ Full | ✅ Full | ✅ High | ✅ Initial (experimental) |
+| Feature | GP3 (`.gp3`) | GP4 (`.gp4`) | GP5 (`.gp5`) | GP6 (`.gpx`) / GP7 (`.gp`) |
+|---------|--------------|--------------|--------------|---------------------------|
+| **Read** | ✅ Full | ✅ Full | ✅ High | ✅ Supported via GPIF Import |
 | **Write** | ⚠️ Partial | ⚠️ Partial | ⚠️ Partial | ❌ Not Implemented |
 
-**Known Limitations in GP5:**
-- Complex "Direction" symbols (Segno, Coda) on advanced files may parsing issues.
-- RSE (Realistic Sound Engine) data is largely skipped or partially read.
+**Known Limitations:**
+- **GP6/7**: Reading relies on converting the internal XML (GPIF) to our model. Some complex effects or layout details might be lost. Writing back to .gpx/.gp is not supported.
+- **RSE (Realistic Sound Engine)**: 
+  - GP5: RSE Master Effect and Equalizers are parsed.
+  - GP6+: Partial support for sound banks and effects chains.
 
 ## 7. Development Guide
 

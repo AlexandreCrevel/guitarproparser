@@ -12,10 +12,12 @@ This workspace is divided into several crates:
 
 ## Features
 
-- **Multi-format support**: Read GP3, GP4, GP5, and early support for GP6/7 (.gp, .gpx).
-- **Rich Data Model**: Exhaustive representation of tracks, measures, beats, notes, and musical effects.
+- **Multi-format support for Reading**:
+    - **GP3, GP4, GP5**: High fidelity parsing of binary formats.
+    - **GPX (GP6), GP (GP7)**: Support via GPIF XML import (intermediate support).
+- **Rich Data Model**: Exhaustive representation of tracks, measures, beats, notes, and musical effects in a clean Rust API.
 - **ASCII Visualization**: Generate text-based tablatures directly from the CLI.
-- **Extensible Architecture**: Module-based design with traits for easy extension.
+- **Extensible Architecture**: Module-based design (`model`, `io`, `audio`) with traits for easy extension.
 
 ## Usage
 
@@ -31,9 +33,10 @@ cargo run -p cli -- --input path/to/song.gp5 --tab
 - [x] Refactor core into `model`, `io`, and `audio` modules.
 - [x] Comprehensive trait-based API for `Song` operations.
 - [x] High-fidelity GP5 parsing.
-- [x] Initial support for GP6/7 (.gp/.gpx) formats.
+- [x] Support for GP6/7 (.gp/.gpx) formats (Read-only via GPIF).
 - [ ] Improved MuseScore (.mscz) support.
-- [ ] Full RSE (Realistic Sound Engine) data parsing.
+- [ ] Full RSE (Realistic Sound Engine) data parsing (Partial support exists).
+- [ ] Write/Export support for GP6/GP7 (Currently GP3-GP5 only).
 - [ ] Export to MIDI/Audio.
 
 ### CLI
