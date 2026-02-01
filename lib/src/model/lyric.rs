@@ -1,6 +1,7 @@
 use fraction::ToPrimitive;
 
 use crate::{io::primitive::*, model::song::*};
+use crate::error::GpResult;
 
 pub const _MAX_LYRICS_LINE_COUNT: u8 = 5;
 
@@ -27,7 +28,7 @@ impl std::fmt::Display for Lyrics {
 }
 
 pub trait SongLyricOps {
-    fn read_lyrics(&self, data: &[u8], seek: &mut usize) -> Lyrics;
+    fn read_lyrics(&self, data: &[u8], seek: &mut usize) -> GpResult<Lyrics>;
     fn write_lyrics(&self, data: &mut Vec<u8>);
 }
 
@@ -36,13 +37,13 @@ impl SongLyricOps for Song {
     ///
     /// First, read an `i32` that points to the track lyrics are bound to. Then it is followed by 5 lyric lines. Each one consists of
     /// number of starting measure encoded in`i32` and`int-size-string` holding text of the lyric line.
-    fn read_lyrics(&self, data: &[u8], seek: &mut usize) -> Lyrics {
-        let mut lyrics = Lyrics{track_choice: read_int(data, seek).to_u8().unwrap(), ..Default::default()};
+    fn read_lyrics(&self, data: &[u8], seek: &mut usize) -> GpResult<Lyrics> {
+        let mut lyrics = Lyrics{track_choice: read_int(data, seek)?.to_u8().unwrap(), ..Default::default()};
         for i in 0..5u8 {
-            let starting_measure = read_int(data, seek).to_u16().unwrap();
-            lyrics.lines.push((i, starting_measure, read_int_size_string(data, seek)));
+            let starting_measure = read_int(data, seek)?.to_u16().unwrap();
+            lyrics.lines.push((i, starting_measure, read_int_size_string(data, seek)?));
         }
-        lyrics
+        Ok(lyrics)
     }
     fn write_lyrics(&self, data: &mut Vec<u8>) {
         write_i32(data, self.lyrics.track_choice.to_i32().unwrap());

@@ -1,10 +1,11 @@
 use std::io::{Read, Cursor};
 use zip::ZipArchive;
 use crate::io::gpif::Gpif;
+use crate::error::GpResult;
 use quick_xml::de::from_str;
 
 /// Reads a .gp (GP7+) file which is a ZIP archive containing 'Content/score.gpif'.
-pub fn read_gp(data: &[u8]) -> Result<Gpif, String> {
+pub fn read_gp(data: &[u8]) -> GpResult<Gpif> {
     let cursor = Cursor::new(data);
     let mut zip = ZipArchive::new(cursor).map_err(|e| format!("Zip error: {}", e))?;
 
@@ -211,7 +212,7 @@ fn parse_bcfs(data: &[u8]) -> Result<Vec<BcfsFile>, String> {
 }
 
 /// Reads a .gpx (GP6) file which is a BCFZ/BCFS container holding 'score.gpif'.
-pub fn read_gpx(data: &[u8]) -> Result<Gpif, String> {
+pub fn read_gpx(data: &[u8]) -> GpResult<Gpif> {
     let decompressed = decompress_bcfz(data)?;
     let files = parse_bcfs(&decompressed)?;
 

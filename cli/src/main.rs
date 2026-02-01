@@ -47,7 +47,7 @@ fn main() {
     file.read_to_end(&mut data).expect("Cannot read file");
 
     let mut song = Song::default();
-    match ext.as_str() {
+    let result = match ext.as_str() {
         "GP3" => song.read_gp3(&data),
         "GP4" => song.read_gp4(&data),
         "GP5" => song.read_gp5(&data),
@@ -57,6 +57,10 @@ fn main() {
             eprintln!("Error: Unsupported format '{}'. Supported: GP3, GP4, GP5, GP.", ext);
             std::process::exit(1);
         }
+    };
+    if let Err(e) = result {
+        eprintln!("Error reading file: {}", e);
+        std::process::exit(1);
     }
 
     print_metadata(&song);

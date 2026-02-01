@@ -181,6 +181,10 @@ impl SongGpifOps for Song {
         self.transcriber = gpif.score.tabber.clone();
         self.copyright = gpif.score.copyright.clone();
         self.comments = gpif.score.instructions.clone();
+        // Notices
+        if !gpif.score.notices.is_empty() {
+            self.notice = gpif.score.notices.lines().map(|l| l.to_string()).collect();
+        }
 
         // 2. Tempo from MasterTrack automations
         if let Some(automations) = &gpif.master_track.automations {
@@ -269,6 +273,18 @@ impl SongGpifOps for Song {
                 mh.marker = Some(Marker { title: title.to_string(), color: 0xff0000 });
             }
 
+            // Fermatas
+            if let Some(fermatas_w) = &mb.fermatas {
+                for f in &fermatas_w.fermatas {
+                    let ftype = f.fermata_type.as_deref().unwrap_or("Medium").to_string();
+                    let offset = f.offset.as_deref().unwrap_or("").to_string();
+                    mh.fermatas.push((ftype, offset));
+                }
+            }
+
+            // Free time
+            mh.free_time = mb.free_time.is_some();
+
             // Directions
             if let Some(dirs) = &mb.directions {
                 if let Some(target) = &dirs.target {
@@ -297,6 +313,7 @@ impl SongGpifOps for Song {
         for (t_idx, g_track) in gpif.tracks.tracks.iter().enumerate() {
             let mut track = SongTrack::default();
             track.name = g_track.name.clone();
+            track.short_name = g_track.short_name.clone();
             track.number = (t_idx + 1) as i32;
 
             // Color
@@ -333,6 +350,16 @@ impl SongGpifOps for Song {
                     track.channel_index = ch as usize;
                     track.percussion_track = ch == 9;
                 }
+                track.midi_program_gpif = gm.program;
+                if let Some(port) = gm.port {
+                    track.port = port as u8;
+                }
+            }
+
+            // Transpose
+            if let Some(tr) = &g_track.transpose {
+                track.transpose_chromatic = tr.chromatic.unwrap_or(0);
+                track.transpose_octave = tr.octave.unwrap_or(0);
             }
 
             // Current dynamic (persists across beats)
@@ -356,6 +383,7 @@ impl SongGpifOps for Song {
                 };
 
                 if let Some(bar) = bars_map.get(&bar_id) {
+                    measure.simile_mark = bar.simile_mark.clone();
                     let voice_ids = parse_ids(&bar.voices);
                     measure.voices.clear();
 
@@ -430,6 +458,22 @@ fn convert_beat(
     if let Some(fadding) = &g_beat.fadding {
         if fadding == "FadeIn" {
             s_beat.effect.fade_in = true;
+        }
+    }
+
+    // Wah effect
+    if let Some(wah_str) = &g_beat.wah {
+        if wah_str == "Open" {
+            s_beat.effect.slap_effect = SlapEffect::None; // placeholder, wah is stored at mix table level in GP5
+        }
+    }
+
+    // Tremolo bar
+    if let Some(tremolo_str) = &g_beat.tremolo {
+        if let Ok(val) = tremolo_str.parse::<f64>() {
+            if val != 0.0 {
+                s_beat.effect.tremolo_bar = Some(build_bend_effect(0.0, val));
+            }
         }
     }
 
@@ -561,6 +605,11 @@ fn convert_note(g_note: &Note, velocity: i16, is_grace_beat: bool, grace_on_beat
         if (accent & 0x01) != 0 { s_note.effect.staccato = true; }
         if (accent & 0x02) != 0 || (accent & 0x08) != 0 { s_note.effect.accentuated_note = true; }
         if (accent & 0x04) != 0 { s_note.effect.heavy_accentuated_note = true; }
+    }
+
+    // Ornament
+    if let Some(orn) = &g_note.ornament {
+        s_note.effect.ornament = Some(orn.clone());
     }
 
     // Trill

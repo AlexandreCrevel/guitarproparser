@@ -4,6 +4,7 @@ use crate::{
     io::primitive::*,
     model::{beat::*, enums::*, key_signature::*, song::*},
 };
+use crate::error::GpResult;
 
 const MAX_VOICES: usize = 2;
 
@@ -21,6 +22,8 @@ pub struct Measure {
     /// Max voice count is 2
     pub voices: Vec<Voice>,
     pub line_break: LineBreak,
+    /// Simile mark from GPIF (GP6/GP7)
+    pub simile_mark: Option<String>,
     /*marker: Optional['Marker'] = None
     isRepeatOpen: bool = False
     repeatAlternative: int = 0
@@ -42,26 +45,27 @@ impl Default for Measure {
             clef: MeasureClef::Treble,
             voices: Vec::with_capacity(2),
             line_break: LineBreak::None,
+            simile_mark: None,
         }
     }
 }
 
 pub trait SongMeasureOps {
-    fn read_measures(&mut self, data: &[u8], seek: &mut usize);
+    fn read_measures(&mut self, data: &[u8], seek: &mut usize) -> GpResult<()>;
     fn read_measure(
         &mut self,
         data: &[u8],
         seek: &mut usize,
         measure: &mut Measure,
         track_index: usize,
-    );
+    ) -> GpResult<()>;
     fn read_measure_v5(
         &mut self,
         data: &[u8],
         seek: &mut usize,
         measure: &mut Measure,
         track_index: usize,
-    );
+    ) -> GpResult<()>;
     fn read_voice(
         &mut self,
         data: &[u8],
@@ -69,7 +73,7 @@ pub trait SongMeasureOps {
         voice: &mut Voice,
         start: &mut i64,
         track_index: usize,
-    );
+    ) -> GpResult<()>;
     fn write_measures(&self, data: &mut Vec<u8>, version: &(u8, u8, u8));
     fn write_measure(
         &self,
@@ -103,7 +107,7 @@ impl SongMeasureOps for Song {
     /// - measure n/track 2
     /// - ...
     /// - measure n/track m
-    fn read_measures(&mut self, data: &[u8], seek: &mut usize) {
+    fn read_measures(&mut self, data: &[u8], seek: &mut usize) -> GpResult<()> {
         for h in 0..self.measure_headers.len() {
             for t in 0..self.tracks.len() {
                 //println!("Reading measure H:{} T:{} Seek:{}", h, t, seek);
@@ -115,9 +119,9 @@ impl SongMeasureOps for Song {
                 };
                 self.current_measure_number = Some(m.number);
                 if self.version.number < (5, 0, 0) {
-                    self.read_measure(data, seek, &mut m, t);
+                    self.read_measure(data, seek, &mut m, t)?;
                 } else {
-                    self.read_measure_v5(data, seek, &mut m, t);
+                    self.read_measure_v5(data, seek, &mut m, t)?;
                 }
                 self.tracks[t].measures.push(m);
             }
@@ -125,6 +129,7 @@ impl SongMeasureOps for Song {
         }
         self.current_track = None;
         self.current_measure_number = None;
+        Ok(())
     }
 
     /// Read measure. The measure is written as number of beats followed by sequence of beats.
@@ -134,11 +139,11 @@ impl SongMeasureOps for Song {
         seek: &mut usize,
         measure: &mut Measure,
         track_index: usize,
-    ) {
+    ) -> GpResult<()> {
         //println!("read_measure()");
         let mut voice = Voice::default();
         self.current_voice_number = Some(1);
-        self.read_voice(data, seek, &mut voice, &mut measure.start, track_index);
+        self.read_voice(data, seek, &mut voice, &mut measure.start, track_index)?;
         self.current_voice_number = None;
         measure.voices.push(voice);
         /*
@@ -155,6 +160,7 @@ impl SongMeasureOps for Song {
         self.current_beat_number = None;
         //end read a voice
         self.current_voice_number = None;*/
+        Ok(())
     }
     /// Read measure. Guitar Pro 5 stores twice more measures compared to Guitar Pro 3. One measure consists of two sub-measures for each of two voices.
     ///
@@ -165,22 +171,23 @@ impl SongMeasureOps for Song {
         seek: &mut usize,
         measure: &mut Measure,
         track_index: usize,
-    ) {
+    ) -> GpResult<()> {
         //println!("read_measure_v5()");
         let mut start = measure.start;
         for number in 0..MAX_VOICES {
             self.current_voice_number = Some(number + 1);
             //println!("read_measure_v5() {:?}",self.current_voice_number);
             let mut voice = Voice::default();
-            self.read_voice(data, seek, &mut voice, &mut start, track_index);
+            self.read_voice(data, seek, &mut voice, &mut start, track_index)?;
             measure.voices.push(voice);
         }
         self.current_voice_number = None;
         if *seek < data.len() {
-            measure.line_break = get_line_break(read_byte(data, seek));
+            measure.line_break = get_line_break(read_byte(data, seek)?);
         } else {
             measure.line_break = get_line_break(0);
         }
+        Ok(())
     }
 
     fn read_voice(
@@ -190,14 +197,14 @@ impl SongMeasureOps for Song {
         voice: &mut Voice,
         start: &mut i64,
         track_index: usize,
-    ) {
+    ) -> GpResult<()> {
         if *seek + 4 > data.len() {
-            return;
+            return Ok(());
         }
-        let beats = read_int(data, seek).to_usize().unwrap_or(0);
+        let beats = read_int(data, seek)?.to_usize().unwrap_or(0);
         //Sanity check
         if beats > 256 {
-            return;
+            return Ok(());
         }
         for i in 0..beats {
             if *seek + 5 > data.len() {
@@ -206,13 +213,14 @@ impl SongMeasureOps for Song {
             self.current_beat_number = Some(i + 1);
             //println!("read_measure() read_voice(), start: {}", measure.start);
             *start += if self.version.number < (5, 0, 0) {
-                self.read_beat(data, seek, voice, *start, track_index)
+                self.read_beat(data, seek, voice, *start, track_index)?
             } else {
-                self.read_beat_v5(data, seek, voice, &mut *start, track_index)
+                self.read_beat_v5(data, seek, voice, &mut *start, track_index)?
             };
             //println!("read_measure() read_voice(), start: {}", measure.start);
         }
         self.current_beat_number = None;
+        Ok(())
     }
 
     fn write_measures(&self, data: &mut Vec<u8>, version: &(u8, u8, u8)) {

@@ -1,6 +1,10 @@
 pub mod audio;
+pub mod error;
 pub mod io;
 pub mod model;
+
+// Re-export error types
+pub use crate::error::{GpError, GpResult};
 
 // Re-export core types
 pub use crate::model::beat::{Beat, Voice};

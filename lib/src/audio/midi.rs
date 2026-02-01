@@ -1,6 +1,6 @@
 use fraction::ToPrimitive;
 
-use crate::{io::primitive::*, model::song::*};
+use crate::{io::primitive::*, model::song::*, error::GpResult};
 
 //MIDI channels
 
@@ -184,18 +184,19 @@ impl MidiChannel {
 }
 
 pub trait SongMidiOps {
-    fn read_midi_channels(&mut self, data: &[u8], seek: &mut usize);
-    fn read_midi_channel(&self, data: &[u8], seek: &mut usize, channel: u8) -> MidiChannel;
-    fn read_channel(&mut self, data: &[u8], seek: &mut usize) -> usize;
+    fn read_midi_channels(&mut self, data: &[u8], seek: &mut usize) -> GpResult<()>;
+    fn read_midi_channel(&self, data: &[u8], seek: &mut usize, channel: u8) -> GpResult<MidiChannel>;
+    fn read_channel(&mut self, data: &[u8], seek: &mut usize) -> GpResult<usize>;
     fn write_midi_channels(&self, data: &mut Vec<u8>);
 }
 
 impl SongMidiOps for Song {
     /// Read all the MIDI channels
-    fn read_midi_channels(&mut self, data: &[u8], seek: &mut usize) {
+    fn read_midi_channels(&mut self, data: &[u8], seek: &mut usize) -> GpResult<()> {
         for i in 0u8..64u8 {
-            self.channels.push(self.read_midi_channel(data, seek, i));
+            self.channels.push(self.read_midi_channel(data, seek, i)?);
         }
+        Ok(())
     }
     /// Read MIDI channels. Guitar Pro format provides 64 channels (4 MIDI ports by 16 hannels), the channels are stored in this order:
     ///`port1/channel1`, `port1/channel2`, ..., `port1/channel16`, `port2/channel1`, ..., `port4/channel16`.
@@ -211,30 +212,30 @@ impl SongMidiOps for Song {
     /// * **Tremolo**: `byte`
     /// * **blank1**: `byte` => Backward compatibility with version 3.0
     /// * **blank2**: `byte` => Backward compatibility with version 3.0
-    fn read_midi_channel(&self, data: &[u8], seek: &mut usize, channel: u8) -> MidiChannel {
-        let instrument = read_int(data, seek);
+    fn read_midi_channel(&self, data: &[u8], seek: &mut usize, channel: u8) -> GpResult<MidiChannel> {
+        let instrument = read_int(data, seek)?;
         let mut c = MidiChannel {
             channel,
             effect_channel: channel,
             ..Default::default()
         };
-        c.volume = read_signed_byte(data, seek);
-        c.balance = read_signed_byte(data, seek);
-        c.chorus = read_signed_byte(data, seek);
-        c.reverb = read_signed_byte(data, seek);
-        c.phaser = read_signed_byte(data, seek);
-        c.tremolo = read_signed_byte(data, seek);
+        c.volume = read_signed_byte(data, seek)?;
+        c.balance = read_signed_byte(data, seek)?;
+        c.chorus = read_signed_byte(data, seek)?;
+        c.reverb = read_signed_byte(data, seek)?;
+        c.phaser = read_signed_byte(data, seek)?;
+        c.tremolo = read_signed_byte(data, seek)?;
         c.set_instrument(instrument);
         //println!("Channel: {}\t Volume: {}\tBalance: {}\tInstrument={}, {}, {}", c.channel, c.volume, c.balance, instrument, c.get_instrument(), c.get_instrument_name());
         *seek += 2; //Backward compatibility with version 3.0
-        c
+        Ok(c)
     }
 
     /// Read MIDI channel. MIDI channel in Guitar Pro is represented by two integers. First is zero-based number of channel, second is zero-based number of channel used for effects.
-    fn read_channel(&mut self, data: &[u8], seek: &mut usize) -> usize {
+    fn read_channel(&mut self, data: &[u8], seek: &mut usize) -> GpResult<usize> {
         //TODO: fixme for writing
-        let index = read_int(data, seek) - 1;
-        let effect_channel = read_int(data, seek) - 1;
+        let index = read_int(data, seek)? - 1;
+        let effect_channel = read_int(data, seek)? - 1;
         if 0 <= index && index < self.channels.len().to_i32().unwrap() {
             if self.channels[index.to_usize().unwrap()].instrument < 0 {
                 self.channels[index.to_usize().unwrap()].instrument = 0;
@@ -244,7 +245,7 @@ impl SongMidiOps for Song {
                     effect_channel.to_u8().unwrap();
             }
         }
-        index.to_usize().unwrap()
+        Ok(index.to_usize().unwrap())
     }
 
     fn write_midi_channels(&self, data: &mut Vec<u8>) {
