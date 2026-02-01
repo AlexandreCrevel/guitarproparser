@@ -232,6 +232,17 @@ impl SongGpifOps for Song {
             }
         }
 
+        // 2b. Master RSE
+        if let Some(rse_wrapper) = &gpif.master_track.rse {
+            if let Some(master) = &rse_wrapper.master {
+                if let Some(vol) = master.volume {
+                    // GPX volume is typically 0.0-1.0 or similar.
+                    // Scorelib model expects arbitrary flow. we store as is.
+                    self.master_effect.volume = vol * 100.0; // rudimentary mapping
+                }
+            }
+        }
+
         // 3. Build lookup maps
         let bars_map: HashMap<i32, &Bar> = gpif.bars.bars.iter().map(|b| (b.id, b)).collect();
         let voices_map: HashMap<i32, &Voice> =
@@ -411,6 +422,17 @@ impl SongGpifOps for Song {
 
             // Current dynamic (persists across beats)
             let mut current_velocity: i16 = FORTE;
+
+            // RSE (GPX)
+            if let Some(rse_wrapper) = &g_track.rse {
+                // Populate humanize/instrument from GPX RSE if possible
+                // Currently just setting default or mapping names if available
+                if let Some(chains) = &rse_wrapper.effect_chains {
+                    if let Some(first_chain) = chains.effect_chains.first() {
+                        track.rse.instrument.effect_category = first_chain.name.clone();
+                    }
+                }
+            }
 
             // Measures
             for m_idx in 0..num_measures {
