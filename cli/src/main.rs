@@ -1,6 +1,6 @@
 use clap::Parser;
-use scorelib::gp::Song;
-use scorelib::track::Track;
+use scorelib::Song;
+use scorelib::Track;
 use std::path::Path;
 use std::fs;
 use std::io::Read;
@@ -52,10 +52,7 @@ fn main() {
         "GP4" => song.read_gp4(&data),
         "GP5" => song.read_gp5(&data),
         "GP" => song.read_gp(&data),
-        "GPX" => {
-            eprintln!("Error: GPX format (Guitar Pro 6) is not yet implemented.");
-            std::process::exit(1);
-        }
+        "GPX" => song.read_gpx(&data),
         _ => {
             eprintln!("Error: Unsupported format '{}'. Supported: GP3, GP4, GP5, GP.", ext);
             std::process::exit(1);

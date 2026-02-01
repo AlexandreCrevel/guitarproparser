@@ -218,8 +218,15 @@ impl Song {
         }
     }
     /// Read Guitar Pro 6 file (.gpx)
-    pub fn read_gpx(&mut self, _data: &[u8]) {
-        panic!("GPX format (Guitar Pro 6) is not yet implemented. Please use .gp (Guitar Pro 7+) or legacy formats.");
+    pub fn read_gpx(&mut self, data: &[u8]) {
+        use crate::io::gpx::read_gpx;
+        match read_gpx(data) {
+            Ok(gpif) => {
+                self.version.number = (6, 0, 0);
+                self.read_gpif(&gpif);
+            }
+            Err(e) => panic!("Error reading GPX file: {}", e),
+        }
     }
 
     /// Read information (name, artist, ...)

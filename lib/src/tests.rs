@@ -489,3 +489,418 @@ fn test_gp7_read() {
     assert_eq!(song.measure_headers.len(), 32);
     assert_eq!(song.tracks[0].measures.len(), 32);
 }
+
+// ==================== GPX (Guitar Pro 6) tests ====================
+
+fn read_gpx(filename: &str) -> Song {
+    let mut song = Song::default();
+    song.read_gpx(&read_file(String::from(filename)));
+    song
+}
+
+#[test]
+fn test_gpx_keysig() {
+    let song = read_gpx("test/keysig.gpx");
+    assert_eq!(song.tracks.len(), 1);
+    assert_eq!(song.measure_headers.len(), 32);
+}
+#[test]
+fn test_gpx_copyright() {
+    let song = read_gpx("test/copyright.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_tempo() {
+    let song = read_gpx("test/tempo.gpx");
+    assert!(!song.measure_headers.is_empty());
+}
+#[test]
+fn test_gpx_rest_centered() {
+    let song = read_gpx("test/rest-centered.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_dotted_tuplets() {
+    let song = read_gpx("test/dotted-tuplets.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_tuplets() {
+    let song = read_gpx("test/tuplets.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_tuplets2() {
+    let song = read_gpx("test/tuplets2.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_test_irr_tuplet() {
+    let song = read_gpx("test/testIrrTuplet.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_repeats() {
+    let song = read_gpx("test/repeats.gpx");
+    assert!(!song.measure_headers.is_empty());
+}
+#[test]
+fn test_gpx_repeated_bars() {
+    let song = read_gpx("test/repeated-bars.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_volta() {
+    let song = read_gpx("test/volta.gpx");
+    assert!(!song.measure_headers.is_empty());
+}
+#[test]
+fn test_gpx_multivoices() {
+    let song = read_gpx("test/multivoices.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_double_bar() {
+    let song = read_gpx("test/double-bar.gpx");
+    assert!(!song.measure_headers.is_empty());
+}
+#[test]
+fn test_gpx_clefs() {
+    let song = read_gpx("test/clefs.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_bend() {
+    let song = read_gpx("test/bend.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_basic_bend() {
+    let song = read_gpx("test/basic-bend.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_vibrato() {
+    let song = read_gpx("test/vibrato.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_let_ring() {
+    let song = read_gpx("test/let-ring.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_palm_mute() {
+    let song = read_gpx("test/palm-mute.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_accent() {
+    let song = read_gpx("test/accent.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_sforzato() {
+    let song = read_gpx("test/sforzato.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_heavy_accent() {
+    let song = read_gpx("test/heavy-accent.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_ghost_note() {
+    let song = read_gpx("test/ghost-note.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_dead_note() {
+    let song = read_gpx("test/dead-note.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_trill() {
+    let song = read_gpx("test/trill.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_tremolos() {
+    let song = read_gpx("test/tremolos.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_grace() {
+    let song = read_gpx("test/grace.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_grace_before_beat() {
+    let song = read_gpx("test/grace-before-beat.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_grace_on_beat() {
+    let song = read_gpx("test/grace-on-beat.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_artificial_harmonic() {
+    let song = read_gpx("test/artificial-harmonic.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_high_pitch() {
+    let song = read_gpx("test/high-pitch.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_shift_slide() {
+    let song = read_gpx("test/shift-slide.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_legato_slide() {
+    let song = read_gpx("test/legato-slide.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_slide_out_down() {
+    let song = read_gpx("test/slide-out-down.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_slide_out_up() {
+    let song = read_gpx("test/slide-out-up.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_slide_in_below() {
+    let song = read_gpx("test/slide-in-below.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_slide_in_above() {
+    let song = read_gpx("test/slide-in-above.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_brush() {
+    let song = read_gpx("test/brush.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_arpeggio() {
+    let song = read_gpx("test/arpeggio.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_rasg() {
+    let song = read_gpx("test/rasg.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_fade_in() {
+    let song = read_gpx("test/fade-in.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_volume_swell() {
+    let song = read_gpx("test/volume-swell.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_pick_up_down() {
+    let song = read_gpx("test/pick-up-down.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_slur() {
+    let song = read_gpx("test/slur.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_slur_hammer_slur() {
+    let song = read_gpx("test/slur_hammer_slur.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_slur_slur_hammer() {
+    let song = read_gpx("test/slur_slur_hammer.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_slur_over_3_measures() {
+    let song = read_gpx("test/slur_over_3_measures.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_slur_voices() {
+    let song = read_gpx("test/slur_voices.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_slur_notes_effect_mask() {
+    let song = read_gpx("test/slur-notes-effect-mask.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_dotted_gliss() {
+    let song = read_gpx("test/dotted-gliss.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_ottava1() {
+    let song = read_gpx("test/ottava1.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_ottava2() {
+    let song = read_gpx("test/ottava2.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_ottava3() {
+    let song = read_gpx("test/ottava3.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_ottava4() {
+    let song = read_gpx("test/ottava4.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_ottava5() {
+    let song = read_gpx("test/ottava5.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_mordents() {
+    let song = read_gpx("test/mordents.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_turn() {
+    let song = read_gpx("test/turn.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_barre() {
+    let song = read_gpx("test/barre.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_fingering() {
+    let song = read_gpx("test/fingering.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_fret_diagram() {
+    let song = read_gpx("test/fret-diagram.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_fret_diagram_2instruments() {
+    let song = read_gpx("test/fret-diagram_2instruments.gpx");
+    assert!(song.tracks.len() >= 2);
+}
+#[test]
+fn test_gpx_text() {
+    let song = read_gpx("test/text.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_timer() {
+    let song = read_gpx("test/timer.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_directions() {
+    let song = read_gpx("test/directions.gpx");
+    assert!(!song.measure_headers.is_empty());
+}
+#[test]
+fn test_gpx_fermata() {
+    let song = read_gpx("test/fermata.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_free_time() {
+    let song = read_gpx("test/free-time.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_dynamic() {
+    let song = read_gpx("test/dynamic.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_crescendo_diminuendo() {
+    let song = read_gpx("test/crescendo-diminuendo.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_wah() {
+    let song = read_gpx("test/wah.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_all_percussion() {
+    let song = read_gpx("test/all-percussion.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_beams_stems_ledger_lines() {
+    let song = read_gpx("test/beams-stems-ledger-lines.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_chordnames_keyboard() {
+    let song = read_gpx("test/chordnames_keyboard.gpx");
+    assert!(!song.tracks.is_empty());
+}
+#[test]
+fn test_gpx_tuplet_with_slur() {
+    let song = read_gpx("test/tuplet-with-slur.gpx");
+    assert!(!song.tracks.is_empty());
+}
+
+#[test]
+fn test_gpx_all_files_parse() {
+    use std::fs;
+    let test_dir = "../test";
+    let mut pass = 0;
+    let mut failures: Vec<String> = Vec::new();
+    for entry in fs::read_dir(test_dir).unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        if path.extension().map_or(false, |e| e == "gpx") {
+            let fname = path.file_name().unwrap().to_str().unwrap().to_string();
+            let data = fs::read(&path).unwrap();
+            let mut song = Song::default();
+            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                song.read_gpx(&data);
+            })) {
+                Ok(_) => { pass += 1; }
+                Err(e) => {
+                    let msg = if let Some(s) = e.downcast_ref::<String>() {
+                        s.clone()
+                    } else if let Some(s) = e.downcast_ref::<&str>() {
+                        s.to_string()
+                    } else {
+                        "unknown".to_string()
+                    };
+                    let short = &msg[..msg.len().min(100)];
+                    failures.push(format!("{}: {}", fname, short));
+                }
+            }
+        }
+    }
+    if !failures.is_empty() {
+        for f in &failures {
+            eprintln!("FAIL: {}", f);
+        }
+    }
+    eprintln!("{} pass, {} fail out of {}", pass, failures.len(), pass + failures.len());
+    assert!(failures.is_empty(), "{} files failed to parse", failures.len());
+}
