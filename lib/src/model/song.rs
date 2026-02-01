@@ -1,6 +1,7 @@
 use fraction::ToPrimitive;
 
 use crate::audio::midi::*;
+use crate::error::GpResult;
 use crate::io::gpif_import::*;
 use crate::io::primitive::*;
 use crate::model::enums::*;
@@ -11,7 +12,6 @@ use crate::model::measure::*;
 use crate::model::page::*;
 use crate::model::rse::*;
 use crate::model::track::*;
-use crate::error::GpResult;
 
 // Struct utility to read file: https://stackoverflow.com/questions/55555538/what-is-the-correct-way-to-read-a-binary-file-in-chunks-of-a-fixed-size-and-stor
 #[derive(Debug, Clone)]
@@ -120,14 +120,11 @@ impl Song {
         } else {
             TripletFeel::None
         };
-        //println!("Triplet feel: {}", self.triplet_feel);
-        self.tempo = read_int(data, &mut seek)?.to_i16().unwrap();
-        self.key.key = read_int(data, &mut seek)?.to_i8().unwrap();
-        //println!("Tempo: {} bpm\t\tKey: {}", self.tempo, self.key.to_string());
+        self.tempo = read_int(data, &mut seek)?.to_i16().unwrap_or(120);
+        self.key.key = read_int(data, &mut seek)?.to_i8().unwrap_or(0);
         self.read_midi_channels(data, &mut seek)?;
-        let measure_count = read_int(data, &mut seek)?.to_usize().unwrap();
-        let track_count = read_int(data, &mut seek)?.to_usize().unwrap();
-        //println!("Measures count: {}\tTrack count: {}", measure_count, track_count);
+        let measure_count = read_int(data, &mut seek)?.to_usize().unwrap_or(0);
+        let track_count = read_int(data, &mut seek)?.to_usize().unwrap_or(0);
         // Read measure headers. The *measures* are written one after another, their number have been specified previously.
         self.read_measure_headers(data, &mut seek, measure_count)?;
         self.current_measure_number = Some(0);
@@ -159,16 +156,13 @@ impl Song {
         } else {
             TripletFeel::None
         };
-        //println!("Triplet feel: {}", self.triplet_feel);
         self.lyrics = self.read_lyrics(data, &mut seek)?; //read lyrics
-        self.tempo = read_int(data, &mut seek)?.to_i16().unwrap();
-        self.key.key = read_int(data, &mut seek)?.to_i8().unwrap();
-        //println!("Tempo: {} bpm\t\tKey: {}", self.tempo, self.key.to_string());
+        self.tempo = read_int(data, &mut seek)?.to_i16().unwrap_or(120);
+        self.key.key = read_int(data, &mut seek)?.to_i8().unwrap_or(0);
         read_signed_byte(data, &mut seek)?; //octave
         self.read_midi_channels(data, &mut seek)?;
-        let measure_count = read_int(data, &mut seek)?.to_usize().unwrap();
-        let track_count = read_int(data, &mut seek)?.to_usize().unwrap();
-        //println!("Measures count: {}\tTrack count: {}", measure_count, track_count);
+        let measure_count = read_int(data, &mut seek)?.to_usize().unwrap_or(0);
+        let track_count = read_int(data, &mut seek)?.to_usize().unwrap_or(0);
         // Read measure headers. The *measures* are written one after another, their number have been specified previously.
         self.read_measure_headers(data, &mut seek, measure_count)?;
         //self.current_measure_number = Some(0);
@@ -185,7 +179,7 @@ impl Song {
         self.master_effect = self.read_rse_master_effect(data, &mut seek)?;
         self.read_page_setup(data, &mut seek)?;
         self.tempo_name = read_int_size_string(data, &mut seek)?;
-        self.tempo = read_int(data, &mut seek)?.to_i16().unwrap();
+        self.tempo = read_int(data, &mut seek)?.to_i16().unwrap_or(120);
         self.hide_tempo = if self.version.number > (5, 0, 0) {
             read_bool(data, &mut seek)?
         } else {
@@ -195,19 +189,12 @@ impl Song {
         read_int(data, &mut seek)?; //octave
         self.read_midi_channels(data, &mut seek)?;
         let directions = self.read_directions(data, &mut seek)?;
-        self.master_effect.reverb = read_int(data, &mut seek)?.to_f32().unwrap();
-        let measure_count = read_int(data, &mut seek)?.to_usize().unwrap();
-        let track_count = read_int(data, &mut seek)?.to_usize().unwrap();
-        //println!("{} {} {} {:?}", self.tempo_name, self.tempo, self.hide_tempo, self.key.key); //OK
-        println!(
-            "Track count: {} \t Measure count: {}",
-            track_count, measure_count
-        ); //OK
+        self.master_effect.reverb = read_int(data, &mut seek)?.to_f32().unwrap_or(0.0);
+        let measure_count = read_int(data, &mut seek)?.to_usize().unwrap_or(0);
+        let track_count = read_int(data, &mut seek)?.to_usize().unwrap_or(0);
         self.read_measure_headers_v5(data, &mut seek, measure_count, &directions)?;
         self.read_tracks_v5(data, &mut seek, track_count)?;
-        println!("read_gp5(), after tracks   \t seek: {}", seek);
         self.read_measures(data, &mut seek)?;
-        println!("read_gp5(), after measures \t seek: {}", seek);
         Ok(())
     }
     /// Read Guitar Pro 7+ file (.gp)
@@ -242,12 +229,11 @@ impl Song {
         self.copyright = read_int_byte_size_string(data, seek)?;
         self.writer = read_int_byte_size_string(data, seek)?; //tabbed by
         self.instructions = read_int_byte_size_string(data, seek)?; //instructions
-                                                                   //notices
-        let nc = read_int(data, seek)?.to_usize().unwrap(); //notes count
+                                                                    //notices
+        let nc = read_int(data, seek)?.to_usize().unwrap_or(0); //notes count
         if nc > 0 {
-            for i in 0..nc {
+            for _ in 0..nc {
                 self.notice.push(read_int_byte_size_string(data, seek)?);
-                println!("  {}\t\t{}", i, self.notice[self.notice.len() - 1]);
             }
         }
         Ok(())

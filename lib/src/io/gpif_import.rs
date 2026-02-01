@@ -8,6 +8,7 @@ use crate::model::{
     headers::{Marker, MeasureHeader},
     key_signature::*,
     measure::Measure,
+    mix_table::*,
     note::Note as SongNote,
     song::*,
     track::Track as SongTrack,
@@ -33,13 +34,7 @@ fn note_value_to_duration(s: &str) -> u16 {
         "32nd" => 32,
         "64th" => 64,
         "128th" => 128,
-        _ => {
-            eprintln!(
-                "Warning: unknown GPIF note value '{}', defaulting to Quarter",
-                s
-            );
-            4
-        }
+        _ => 4,
     }
 }
 
@@ -230,13 +225,7 @@ impl SongGpifOps for Song {
                     if let Some(tempo_str) = auto.value.split_whitespace().next() {
                         self.tempo = match tempo_str.parse::<f64>() {
                             Ok(v) => v as i16,
-                            Err(_) => {
-                                eprintln!(
-                                    "Warning: failed to parse tempo '{}', defaulting to 120",
-                                    tempo_str
-                                );
-                                120
-                            }
+                            Err(_) => 120,
                         };
                     }
                 }
@@ -528,7 +517,12 @@ fn convert_beat(
     // Wah effect
     if let Some(wah_str) = &g_beat.wah {
         if wah_str == "Open" {
-            s_beat.effect.slap_effect = SlapEffect::None; // placeholder, wah is stored at mix table level in GP5
+            let mut mtc = MixTableChange::default();
+            mtc.wah = Some(WahEffect {
+                value: 100, // Fully open
+                display: true,
+            });
+            s_beat.effect.mix_table_change = Some(mtc);
         }
     }
 
