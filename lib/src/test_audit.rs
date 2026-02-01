@@ -45,19 +45,19 @@ fn test_audit_all_files() {
             let mut song = Song::default();
             match extension.as_str() {
                 "gp3" => {
-                    song.read_gp3(&data);
+                    let _ = song.read_gp3(&data);
                 }
                 "gp4" => {
-                    song.read_gp4(&data);
+                    let _ = song.read_gp4(&data);
                 }
                 "gp5" => {
-                    song.read_gp5(&data);
+                    let _ = song.read_gp5(&data);
                 }
                 "gp" => {
-                    song.read_gp(&data);
+                    let _ = song.read_gp(&data);
                 }
                 "gpx" => {
-                    song.read_gpx(&data);
+                    let _ = song.read_gpx(&data);
                 }
                 _ => return "SKIP".to_string(),
             }
@@ -94,7 +94,7 @@ fn test_let_it_be_gp3() {
     };
     let data = fs::read(path).expect("File not found");
     let mut song = Song::default();
-    song.read_gp3(&data);
+    let _ = song.read_gp3(&data);
 }
 
 #[test]
@@ -107,5 +107,5 @@ fn test_demo_v5_gp5() {
     };
     let data = fs::read(path).expect("File not found");
     let mut song = Song::default();
-    song.read_gp5(&data);
+    let _ = song.read_gp5(&data);
 }

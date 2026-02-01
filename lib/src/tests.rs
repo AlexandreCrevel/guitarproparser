@@ -27,448 +27,535 @@ fn read_file(path: String) -> Vec<u8> {
 #[test]
 fn test_gp3_chord() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/Chords.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/Chords.gp3")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_chord() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/Chords.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/Chords.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_chord() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Chords.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Chords.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_unknown_chord_extension() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Unknown Chord Extension.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Unknown Chord Extension.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_chord_without_notes() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/chord_without_notes.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/chord_without_notes.gp5")))
+        .unwrap();
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/001_Funky_Guy.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/001_Funky_Guy.gp5")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp3_duration() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/Duration.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/Duration.gp3")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp3_effects() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/Effects.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/Effects.gp3")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_effects() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/Effects.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/Effects.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_effects() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Effects.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Effects.gp5")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp3_harmonics() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/Harmonics.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/Harmonics.gp3")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_harmonics() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/Harmonics.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/Harmonics.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_harmonics() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Harmonics.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Harmonics.gp5")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp4_key() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/Key.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/Key.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_key() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Key.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Key.gp5")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp4_repeat() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/Repeat.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/Repeat.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_repeat() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Repeat.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Repeat.gp5")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp5_rse() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/RSE.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/RSE.gp5")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp4_slides() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/Slides.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/Slides.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_slides() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Slides.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Slides.gp5")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp4_strokes() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/Strokes.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/Strokes.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_strokes() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Strokes.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Strokes.gp5")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp4_vibrato() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/Vibrato.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/Vibrato.gp4")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp5_voices() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Voices.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Voices.gp5")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp5_no_wah() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/No Wah.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/No Wah.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_wah() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Wah.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Wah.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_wah_m() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/Wah-m.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/Wah-m.gp5")))
+        .unwrap();
 }
 
 #[test]
 fn test_gp5_all_percussion() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/all-percussion.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/all-percussion.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_basic_bend() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/basic-bend.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/basic-bend.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_beams_sterms_ledger_lines() {
     let mut song: Song = Song::default();
     song.read_gp5(&read_file(String::from(
         "test/beams-stems-ledger-lines.gp5",
-    ))).unwrap();
+    )))
+    .unwrap();
 }
 #[test]
 fn test_gp5_brush() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/brush.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/brush.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp3_capo_fret() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/capo-fret.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/capo-fret.gp3")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_capo_fret() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/capo-fret.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/capo-fret.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_capo_fret() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/capo-fret.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/capo-fret.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp3_copyright() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/copyright.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/copyright.gp3")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_copyright() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/copyright.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/copyright.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_copyright() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/copyright.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/copyright.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp3_dotted_gliss() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/dotted-gliss.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/dotted-gliss.gp3")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_dotted_tuplets() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/dotted-tuplets.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/dotted-tuplets.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_dynamic() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/dynamic.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/dynamic.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_fade_in() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/fade-in.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/fade-in.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_fade_in() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/fade-in.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/fade-in.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_fingering() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/fingering.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/fingering.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_fingering() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/fingering.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/fingering.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_fret_diagram() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/fret-diagram.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/fret-diagram.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_fret_diagram() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/fret-diagram.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/fret-diagram.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp3_ghost_note() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/ghost_note.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/ghost_note.gp3")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_grace() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/grace.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/grace.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_heavy_accent() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/heavy-accent.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/heavy-accent.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp3_high_pitch() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/high-pitch.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/high-pitch.gp3")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_keysig() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/keysig.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/keysig.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_keysig() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/keysig.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/keysig.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_legato_slide() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/legato-slide.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/legato-slide.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_legato_slide() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/legato-slide.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/legato-slide.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_let_ring() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/let-ring.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/let-ring.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_let_ring() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/let-ring.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/let-ring.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_palm_mute() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/palm-mute.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/palm-mute.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_palm_mute() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/palm-mute.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/palm-mute.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_pick_up_down() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/pick-up-down.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/pick-up-down.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_pick_up_down() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/pick-up-down.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/pick-up-down.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_rest_centered() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/rest-centered.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/rest-centered.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_rest_centered() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/rest-centered.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/rest-centered.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_sforzato() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/sforzato.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/sforzato.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_shift_slide() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/shift-slide.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/shift-slide.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_shift_slide() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/shift-slide.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/shift-slide.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_slide_in_above() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/slide-in-above.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/slide-in-above.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_slide_in_above() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/slide-in-above.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/slide-in-above.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_slide_in_below() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/slide-in-below.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/slide-in-below.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_slide_in_below() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/slide-in-below.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/slide-in-below.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_slide_out_down() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/slide-out-down.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/slide-out-down.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_slide_out_down() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/slide-out-down.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/slide-out-down.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_slide_out_up() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/slide-out-up.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/slide-out-up.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_slide_out_up() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/slide-out-up.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/slide-out-up.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_slur() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/slur.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/slur.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_slur_notes_effect_mask() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/slur-notes-effect-mask.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/slur-notes-effect-mask.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_tap_slap_pop() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/tap-slap-pop.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/tap-slap-pop.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp3_tempo() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/tempo.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/tempo.gp3")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_tempo() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/tempo.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/tempo.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_tempo() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/tempo.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/tempo.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_test_irr_tuplet() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/testIrrTuplet.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/testIrrTuplet.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_tremolos() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/tremolos.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/tremolos.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_trill() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/trill.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/trill.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_tuplet_with_slur() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/tuplet-with-slur.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/tuplet-with-slur.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_vibrato() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/vibrato.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/vibrato.gp5")))
+        .unwrap();
 }
 #[test]
 fn test_gp3_volta() {
     let mut song: Song = Song::default();
-    song.read_gp3(&read_file(String::from("test/volta.gp3"))).unwrap();
+    song.read_gp3(&read_file(String::from("test/volta.gp3")))
+        .unwrap();
 }
 #[test]
 fn test_gp4_volta() {
     let mut song: Song = Song::default();
-    song.read_gp4(&read_file(String::from("test/volta.gp4"))).unwrap();
+    song.read_gp4(&read_file(String::from("test/volta.gp4")))
+        .unwrap();
 }
 #[test]
 fn test_gp5_volta() {
     let mut song: Song = Song::default();
-    song.read_gp5(&read_file(String::from("test/volta.gp5"))).unwrap();
+    song.read_gp5(&read_file(String::from("test/volta.gp5")))
+        .unwrap();
 }
 
 // ==================== GPX (Guitar Pro 6) tests ====================
@@ -489,7 +576,10 @@ fn test_gpx_keysig() {
 fn test_gpx_copyright() {
     let song = read_gpx("test/copyright.gpx");
     assert!(!song.tracks.is_empty());
-    assert!(!song.copyright.is_empty(), "copyright field should be populated");
+    assert!(
+        !song.copyright.is_empty(),
+        "copyright field should be populated"
+    );
 }
 #[test]
 fn test_gpx_tempo() {
@@ -526,8 +616,14 @@ fn test_gpx_test_irr_tuplet() {
 fn test_gpx_repeats() {
     let song = read_gpx("test/repeats.gpx");
     assert!(!song.measure_headers.is_empty());
-    let has_repeat = song.measure_headers.iter().any(|mh| mh.repeat_open || mh.repeat_close > 0);
-    assert!(has_repeat, "repeats.gpx should have at least one repeat marker");
+    let has_repeat = song
+        .measure_headers
+        .iter()
+        .any(|mh| mh.repeat_open || mh.repeat_close > 0);
+    assert!(
+        has_repeat,
+        "repeats.gpx should have at least one repeat marker"
+    );
 }
 #[test]
 fn test_gpx_repeated_bars() {
@@ -538,8 +634,14 @@ fn test_gpx_repeated_bars() {
 fn test_gpx_volta() {
     let song = read_gpx("test/volta.gpx");
     assert!(!song.measure_headers.is_empty());
-    let has_volta = song.measure_headers.iter().any(|mh| mh.repeat_alternative > 0);
-    assert!(has_volta, "volta.gpx should have at least one alternate ending");
+    let has_volta = song
+        .measure_headers
+        .iter()
+        .any(|mh| mh.repeat_alternative > 0);
+    assert!(
+        has_volta,
+        "volta.gpx should have at least one alternate ending"
+    );
 }
 #[test]
 fn test_gpx_multivoices() {
@@ -551,7 +653,10 @@ fn test_gpx_double_bar() {
     let song = read_gpx("test/double-bar.gpx");
     assert!(!song.measure_headers.is_empty());
     let has_double_bar = song.measure_headers.iter().any(|mh| mh.double_bar);
-    assert!(has_double_bar, "double-bar.gpx should have at least one double bar");
+    assert!(
+        has_double_bar,
+        "double-bar.gpx should have at least one double bar"
+    );
 }
 #[test]
 fn test_gpx_clefs() {
@@ -566,13 +671,16 @@ fn test_gpx_bend() {
     let has_bend = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.bend.is_some())
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.bend.is_some()))
             })
         })
     });
-    assert!(has_bend, "bend.gpx should contain at least one note with a bend effect");
+    assert!(
+        has_bend,
+        "bend.gpx should contain at least one note with a bend effect"
+    );
 }
 #[test]
 fn test_gpx_basic_bend() {
@@ -586,13 +694,16 @@ fn test_gpx_vibrato() {
     let has_vibrato = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.vibrato)
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.vibrato))
             })
         })
     });
-    assert!(has_vibrato, "vibrato.gpx should contain at least one note with vibrato");
+    assert!(
+        has_vibrato,
+        "vibrato.gpx should contain at least one note with vibrato"
+    );
 }
 #[test]
 fn test_gpx_let_ring() {
@@ -601,13 +712,16 @@ fn test_gpx_let_ring() {
     let has_let_ring = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.let_ring)
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.let_ring))
             })
         })
     });
-    assert!(has_let_ring, "let-ring.gpx should contain at least one let-ring note");
+    assert!(
+        has_let_ring,
+        "let-ring.gpx should contain at least one let-ring note"
+    );
 }
 #[test]
 fn test_gpx_palm_mute() {
@@ -616,13 +730,16 @@ fn test_gpx_palm_mute() {
     let has_palm_mute = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.palm_mute)
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.palm_mute))
             })
         })
     });
-    assert!(has_palm_mute, "palm-mute.gpx should contain at least one palm-muted note");
+    assert!(
+        has_palm_mute,
+        "palm-mute.gpx should contain at least one palm-muted note"
+    );
 }
 #[test]
 fn test_gpx_accent() {
@@ -646,13 +763,16 @@ fn test_gpx_ghost_note() {
     let has_ghost = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.ghost_note)
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.ghost_note))
             })
         })
     });
-    assert!(has_ghost, "ghost-note.gpx should contain at least one ghost note");
+    assert!(
+        has_ghost,
+        "ghost-note.gpx should contain at least one ghost note"
+    );
 }
 #[test]
 fn test_gpx_dead_note() {
@@ -662,13 +782,16 @@ fn test_gpx_dead_note() {
     let has_dead = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.kind == NoteType::Dead)
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.kind == NoteType::Dead))
             })
         })
     });
-    assert!(has_dead, "dead-note.gpx should contain at least one dead note");
+    assert!(
+        has_dead,
+        "dead-note.gpx should contain at least one dead note"
+    );
 }
 #[test]
 fn test_gpx_trill() {
@@ -677,13 +800,16 @@ fn test_gpx_trill() {
     let has_trill = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.trill.is_some())
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.trill.is_some()))
             })
         })
     });
-    assert!(has_trill, "trill.gpx should contain at least one trill note");
+    assert!(
+        has_trill,
+        "trill.gpx should contain at least one trill note"
+    );
 }
 #[test]
 fn test_gpx_tremolos() {
@@ -697,13 +823,16 @@ fn test_gpx_grace() {
     let has_grace = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.grace.is_some())
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.grace.is_some()))
             })
         })
     });
-    assert!(has_grace, "grace.gpx should contain at least one grace note");
+    assert!(
+        has_grace,
+        "grace.gpx should contain at least one grace note"
+    );
 }
 #[test]
 fn test_gpx_grace_before_beat() {
@@ -713,14 +842,17 @@ fn test_gpx_grace_before_beat() {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
                 v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| {
-                        n.effect.grace.as_ref().map_or(false, |g| !g.is_on_beat)
-                    })
+                    b.notes
+                        .iter()
+                        .any(|n| n.effect.grace.as_ref().is_some_and(|g| !g.is_on_beat))
                 })
             })
         })
     });
-    assert!(has_grace_before, "grace-before-beat.gpx should contain a grace note before the beat");
+    assert!(
+        has_grace_before,
+        "grace-before-beat.gpx should contain a grace note before the beat"
+    );
 }
 #[test]
 fn test_gpx_grace_on_beat() {
@@ -730,14 +862,17 @@ fn test_gpx_grace_on_beat() {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
                 v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| {
-                        n.effect.grace.as_ref().map_or(false, |g| g.is_on_beat)
-                    })
+                    b.notes
+                        .iter()
+                        .any(|n| n.effect.grace.as_ref().is_some_and(|g| g.is_on_beat))
                 })
             })
         })
     });
-    assert!(has_grace_on, "grace-on-beat.gpx should contain a grace note on the beat");
+    assert!(
+        has_grace_on,
+        "grace-on-beat.gpx should contain a grace note on the beat"
+    );
 }
 #[test]
 fn test_gpx_artificial_harmonic() {
@@ -746,13 +881,16 @@ fn test_gpx_artificial_harmonic() {
     let has_harmonic = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.harmonic.is_some())
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.harmonic.is_some()))
             })
         })
     });
-    assert!(has_harmonic, "artificial-harmonic.gpx should contain at least one harmonic note");
+    assert!(
+        has_harmonic,
+        "artificial-harmonic.gpx should contain at least one harmonic note"
+    );
 }
 #[test]
 fn test_gpx_high_pitch() {
@@ -766,13 +904,16 @@ fn test_gpx_shift_slide() {
     let has_slide = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| !n.effect.slides.is_empty())
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| !n.effect.slides.is_empty()))
             })
         })
     });
-    assert!(has_slide, "shift-slide.gpx should contain at least one note with slide effect");
+    assert!(
+        has_slide,
+        "shift-slide.gpx should contain at least one note with slide effect"
+    );
 }
 #[test]
 fn test_gpx_legato_slide() {
@@ -820,12 +961,15 @@ fn test_gpx_fade_in() {
     assert!(!song.tracks.is_empty());
     let has_fade_in = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
-            m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| b.effect.fade_in)
-            })
+            m.voices
+                .iter()
+                .any(|v| v.beats.iter().any(|b| b.effect.fade_in))
         })
     });
-    assert!(has_fade_in, "fade-in.gpx should contain at least one beat with fade-in");
+    assert!(
+        has_fade_in,
+        "fade-in.gpx should contain at least one beat with fade-in"
+    );
 }
 #[test]
 fn test_gpx_volume_swell() {
@@ -957,18 +1101,25 @@ fn test_gpx_dynamic() {
     let song = read_gpx("test/dynamic.gpx");
     assert!(!song.tracks.is_empty());
     // Verify that notes have varying velocities (not all the same default)
-    let velocities: Vec<i16> = song.tracks.iter().flat_map(|t| {
-        t.measures.iter().flat_map(|m| {
-            m.voices.iter().flat_map(|v| {
-                v.beats.iter().flat_map(|b| {
-                    b.notes.iter().map(|n| n.velocity)
+    let velocities: Vec<i16> = song
+        .tracks
+        .iter()
+        .flat_map(|t| {
+            t.measures.iter().flat_map(|m| {
+                m.voices.iter().flat_map(|v| {
+                    v.beats
+                        .iter()
+                        .flat_map(|b| b.notes.iter().map(|n| n.velocity))
                 })
             })
         })
-    }).collect();
+        .collect();
     assert!(!velocities.is_empty(), "dynamic.gpx should contain notes");
     let has_varying = velocities.iter().any(|&v| v != velocities[0]);
-    assert!(has_varying, "dynamic.gpx should have varying velocities across notes");
+    assert!(
+        has_varying,
+        "dynamic.gpx should have varying velocities across notes"
+    );
 }
 #[test]
 fn test_gpx_crescendo_diminuendo() {
@@ -1010,14 +1161,16 @@ fn test_gpx_all_files_parse() {
     for entry in fs::read_dir(test_dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
-        if path.extension().map_or(false, |e| e == "gpx") {
+        if path.extension().is_some_and(|e| e == "gpx") {
             let fname = path.file_name().unwrap().to_str().unwrap().to_string();
             let data = fs::read(&path).unwrap();
             let mut song = Song::default();
             match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 song.read_gpx(&data).unwrap();
             })) {
-                Ok(_) => { pass += 1; }
+                Ok(_) => {
+                    pass += 1;
+                }
                 Err(e) => {
                     let msg = if let Some(s) = e.downcast_ref::<String>() {
                         s.clone()
@@ -1037,8 +1190,17 @@ fn test_gpx_all_files_parse() {
             eprintln!("FAIL: {}", f);
         }
     }
-    eprintln!("{} pass, {} fail out of {}", pass, failures.len(), pass + failures.len());
-    assert!(failures.is_empty(), "{} files failed to parse", failures.len());
+    eprintln!(
+        "{} pass, {} fail out of {}",
+        pass,
+        failures.len(),
+        pass + failures.len()
+    );
+    assert!(
+        failures.is_empty(),
+        "{} files failed to parse",
+        failures.len()
+    );
 }
 
 // ==================== GP7 (Guitar Pro 7+) tests ====================
@@ -1059,7 +1221,10 @@ fn test_gp7_keysig() {
 fn test_gp7_copyright() {
     let song = read_gp7("test/copyright.gp");
     assert!(!song.tracks.is_empty());
-    assert!(!song.copyright.is_empty(), "copyright field should be populated");
+    assert!(
+        !song.copyright.is_empty(),
+        "copyright field should be populated"
+    );
 }
 #[test]
 fn test_gp7_tempo() {
@@ -1086,8 +1251,14 @@ fn test_gp7_test_irr_tuplet() {
 fn test_gp7_repeats() {
     let song = read_gp7("test/repeats.gp");
     assert!(!song.measure_headers.is_empty());
-    let has_repeat = song.measure_headers.iter().any(|mh| mh.repeat_open || mh.repeat_close > 0);
-    assert!(has_repeat, "repeats.gp should have at least one repeat marker");
+    let has_repeat = song
+        .measure_headers
+        .iter()
+        .any(|mh| mh.repeat_open || mh.repeat_close > 0);
+    assert!(
+        has_repeat,
+        "repeats.gp should have at least one repeat marker"
+    );
 }
 #[test]
 fn test_gp7_repeated_bars() {
@@ -1098,8 +1269,14 @@ fn test_gp7_repeated_bars() {
 fn test_gp7_volta() {
     let song = read_gp7("test/volta.gp");
     assert!(!song.measure_headers.is_empty());
-    let has_volta = song.measure_headers.iter().any(|mh| mh.repeat_alternative > 0);
-    assert!(has_volta, "volta.gp should have at least one alternate ending");
+    let has_volta = song
+        .measure_headers
+        .iter()
+        .any(|mh| mh.repeat_alternative > 0);
+    assert!(
+        has_volta,
+        "volta.gp should have at least one alternate ending"
+    );
 }
 #[test]
 fn test_gp7_multivoices() {
@@ -1111,7 +1288,10 @@ fn test_gp7_double_bar() {
     let song = read_gp7("test/double-bar.gp");
     assert!(!song.measure_headers.is_empty());
     let has_double_bar = song.measure_headers.iter().any(|mh| mh.double_bar);
-    assert!(has_double_bar, "double-bar.gp should have at least one double bar");
+    assert!(
+        has_double_bar,
+        "double-bar.gp should have at least one double bar"
+    );
 }
 #[test]
 fn test_gp7_clefs() {
@@ -1125,13 +1305,16 @@ fn test_gp7_bend() {
     let has_bend = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.bend.is_some())
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.bend.is_some()))
             })
         })
     });
-    assert!(has_bend, "bend.gp should contain at least one note with a bend effect");
+    assert!(
+        has_bend,
+        "bend.gp should contain at least one note with a bend effect"
+    );
 }
 #[test]
 fn test_gp7_basic_bend() {
@@ -1145,13 +1328,16 @@ fn test_gp7_vibrato() {
     let has_vibrato = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.vibrato)
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.vibrato))
             })
         })
     });
-    assert!(has_vibrato, "vibrato.gp should contain at least one note with vibrato");
+    assert!(
+        has_vibrato,
+        "vibrato.gp should contain at least one note with vibrato"
+    );
 }
 #[test]
 fn test_gp7_let_ring() {
@@ -1160,13 +1346,16 @@ fn test_gp7_let_ring() {
     let has_let_ring = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.let_ring)
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.let_ring))
             })
         })
     });
-    assert!(has_let_ring, "let-ring.gp should contain at least one let-ring note");
+    assert!(
+        has_let_ring,
+        "let-ring.gp should contain at least one let-ring note"
+    );
 }
 #[test]
 fn test_gp7_palm_mute() {
@@ -1175,13 +1364,16 @@ fn test_gp7_palm_mute() {
     let has_palm_mute = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.palm_mute)
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.palm_mute))
             })
         })
     });
-    assert!(has_palm_mute, "palm-mute.gp should contain at least one palm-muted note");
+    assert!(
+        has_palm_mute,
+        "palm-mute.gp should contain at least one palm-muted note"
+    );
 }
 #[test]
 fn test_gp7_accent() {
@@ -1205,13 +1397,16 @@ fn test_gp7_ghost_note() {
     let has_ghost = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.ghost_note)
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.ghost_note))
             })
         })
     });
-    assert!(has_ghost, "ghost-note.gp should contain at least one ghost note");
+    assert!(
+        has_ghost,
+        "ghost-note.gp should contain at least one ghost note"
+    );
 }
 #[test]
 fn test_gp7_dead_note() {
@@ -1221,13 +1416,16 @@ fn test_gp7_dead_note() {
     let has_dead = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.kind == NoteType::Dead)
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.kind == NoteType::Dead))
             })
         })
     });
-    assert!(has_dead, "dead-note.gp should contain at least one dead note");
+    assert!(
+        has_dead,
+        "dead-note.gp should contain at least one dead note"
+    );
 }
 #[test]
 fn test_gp7_trill() {
@@ -1236,9 +1434,9 @@ fn test_gp7_trill() {
     let has_trill = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.trill.is_some())
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.trill.is_some()))
             })
         })
     });
@@ -1256,9 +1454,9 @@ fn test_gp7_grace() {
     let has_grace = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.grace.is_some())
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.grace.is_some()))
             })
         })
     });
@@ -1272,14 +1470,17 @@ fn test_gp7_grace_before_beat() {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
                 v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| {
-                        n.effect.grace.as_ref().map_or(false, |g| !g.is_on_beat)
-                    })
+                    b.notes
+                        .iter()
+                        .any(|n| n.effect.grace.as_ref().is_some_and(|g| !g.is_on_beat))
                 })
             })
         })
     });
-    assert!(has_grace_before, "grace-before-beat.gp should contain a grace note before the beat");
+    assert!(
+        has_grace_before,
+        "grace-before-beat.gp should contain a grace note before the beat"
+    );
 }
 #[test]
 fn test_gp7_grace_on_beat() {
@@ -1289,14 +1490,17 @@ fn test_gp7_grace_on_beat() {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
                 v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| {
-                        n.effect.grace.as_ref().map_or(false, |g| g.is_on_beat)
-                    })
+                    b.notes
+                        .iter()
+                        .any(|n| n.effect.grace.as_ref().is_some_and(|g| g.is_on_beat))
                 })
             })
         })
     });
-    assert!(has_grace_on, "grace-on-beat.gp should contain a grace note on the beat");
+    assert!(
+        has_grace_on,
+        "grace-on-beat.gp should contain a grace note on the beat"
+    );
 }
 #[test]
 fn test_gp7_artificial_harmonic() {
@@ -1305,13 +1509,16 @@ fn test_gp7_artificial_harmonic() {
     let has_harmonic = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.harmonic.is_some())
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| n.effect.harmonic.is_some()))
             })
         })
     });
-    assert!(has_harmonic, "artificial-harmonic.gp should contain at least one harmonic note");
+    assert!(
+        has_harmonic,
+        "artificial-harmonic.gp should contain at least one harmonic note"
+    );
 }
 #[test]
 fn test_gp7_high_pitch() {
@@ -1325,13 +1532,16 @@ fn test_gp7_shift_slide() {
     let has_slide = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| !n.effect.slides.is_empty())
-                })
+                v.beats
+                    .iter()
+                    .any(|b| b.notes.iter().any(|n| !n.effect.slides.is_empty()))
             })
         })
     });
-    assert!(has_slide, "shift-slide.gp should contain at least one note with slide effect");
+    assert!(
+        has_slide,
+        "shift-slide.gp should contain at least one note with slide effect"
+    );
 }
 #[test]
 fn test_gp7_legato_slide() {
@@ -1379,12 +1589,15 @@ fn test_gp7_fade_in() {
     assert!(!song.tracks.is_empty());
     let has_fade_in = song.tracks.iter().any(|t| {
         t.measures.iter().any(|m| {
-            m.voices.iter().any(|v| {
-                v.beats.iter().any(|b| b.effect.fade_in)
-            })
+            m.voices
+                .iter()
+                .any(|v| v.beats.iter().any(|b| b.effect.fade_in))
         })
     });
-    assert!(has_fade_in, "fade-in.gp should contain at least one beat with fade-in");
+    assert!(
+        has_fade_in,
+        "fade-in.gp should contain at least one beat with fade-in"
+    );
 }
 #[test]
 fn test_gp7_volume_swell() {
@@ -1515,18 +1728,25 @@ fn test_gp7_free_time() {
 fn test_gp7_dynamic() {
     let song = read_gp7("test/dynamic.gp");
     assert!(!song.tracks.is_empty());
-    let velocities: Vec<i16> = song.tracks.iter().flat_map(|t| {
-        t.measures.iter().flat_map(|m| {
-            m.voices.iter().flat_map(|v| {
-                v.beats.iter().flat_map(|b| {
-                    b.notes.iter().map(|n| n.velocity)
+    let velocities: Vec<i16> = song
+        .tracks
+        .iter()
+        .flat_map(|t| {
+            t.measures.iter().flat_map(|m| {
+                m.voices.iter().flat_map(|v| {
+                    v.beats
+                        .iter()
+                        .flat_map(|b| b.notes.iter().map(|n| n.velocity))
                 })
             })
         })
-    }).collect();
+        .collect();
     assert!(!velocities.is_empty(), "dynamic.gp should contain notes");
     let has_varying = velocities.iter().any(|&v| v != velocities[0]);
-    assert!(has_varying, "dynamic.gp should have varying velocities across notes");
+    assert!(
+        has_varying,
+        "dynamic.gp should have varying velocities across notes"
+    );
 }
 #[test]
 fn test_gp7_crescendo_diminuendo() {
@@ -1583,14 +1803,16 @@ fn test_gp7_all_files_parse() {
     for entry in fs::read_dir(test_dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
-        if path.extension().map_or(false, |e| e == "gp") {
+        if path.extension().is_some_and(|e| e == "gp") {
             let fname = path.file_name().unwrap().to_str().unwrap().to_string();
             let data = fs::read(&path).unwrap();
             let mut song = Song::default();
             match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 song.read_gp(&data).unwrap();
             })) {
-                Ok(_) => { pass += 1; }
+                Ok(_) => {
+                    pass += 1;
+                }
                 Err(e) => {
                     let msg = if let Some(s) = e.downcast_ref::<String>() {
                         s.clone()
@@ -1610,6 +1832,15 @@ fn test_gp7_all_files_parse() {
             eprintln!("FAIL: {}", f);
         }
     }
-    eprintln!("{} pass, {} fail out of {}", pass, failures.len(), pass + failures.len());
-    assert!(failures.is_empty(), "{} files failed to parse", failures.len());
+    eprintln!(
+        "{} pass, {} fail out of {}",
+        pass,
+        failures.len(),
+        pass + failures.len()
+    );
+    assert!(
+        failures.is_empty(),
+        "{} files failed to parse",
+        failures.len()
+    );
 }

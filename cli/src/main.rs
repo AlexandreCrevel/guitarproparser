@@ -1,9 +1,9 @@
 use clap::Parser;
 use scorelib::Song;
 use scorelib::Track;
-use std::path::Path;
 use std::fs;
 use std::io::Read;
+use std::path::Path;
 
 const GUITAR_FILE_MAX_SIZE: usize = 16777216; // 16 MB
 
@@ -28,7 +28,8 @@ fn main() {
         std::process::exit(1);
     }
 
-    let ext = path.extension()
+    let ext = path
+        .extension()
         .and_then(|e| e.to_str())
         .map(|e| e.to_uppercase())
         .unwrap_or_else(|| "UNKNOWN".to_string());
@@ -54,7 +55,10 @@ fn main() {
         "GP" => song.read_gp(&data),
         "GPX" => song.read_gpx(&data),
         _ => {
-            eprintln!("Error: Unsupported format '{}'. Supported: GP3, GP4, GP5, GP.", ext);
+            eprintln!(
+                "Error: Unsupported format '{}'. Supported: GP3, GP4, GP5, GP.",
+                ext
+            );
             std::process::exit(1);
         }
     };
@@ -87,7 +91,10 @@ fn print_metadata(song: &Song) {
     println!("Copyright:   {}", song.copyright);
     println!("Transcriber: {}", song.transcriber);
     println!("Comments:    {}", song.comments);
-    println!("Version:     {}.{}.{}", song.version.number.0, song.version.number.1, song.version.number.2);
+    println!(
+        "Version:     {}.{}.{}",
+        song.version.number.0, song.version.number.1, song.version.number.2
+    );
     println!("Tracks:      {}", song.tracks.len());
     println!("Tempos:      MixTable items (approx)");
 }
@@ -97,21 +104,25 @@ fn print_ascii_tab(track: &Track) {
     if num_strings == 0 {
         return;
     }
-    
+
     // Buffer for each string (reversed because string 1 is highest pitch = top line)
     // Actually track.strings[0] is usually String 1 (High E).
     // Tab lines: 0=High E, 1=B, 2=G ...
     let mut lines: Vec<String> = vec![String::new(); num_strings];
-    
+
     // Tuning info
     let tuning_names = ["E", "B", "G", "D", "A", "E", "B", "F#"]; // Simple approximation
     for i in 0..num_strings {
-        let sc = if i < tuning_names.len() { tuning_names[i] } else { "?" };
+        let sc = if i < tuning_names.len() {
+            tuning_names[i]
+        } else {
+            "?"
+        };
         lines[i].push_str(&format!("{} |", sc));
     }
 
     // Iterate measures
-    for (_, measure) in track.measures.iter().enumerate() {
+    for measure in track.measures.iter() {
         // Start of measure bar
         for line in &mut lines {
             line.push('|');
@@ -119,7 +130,7 @@ fn print_ascii_tab(track: &Track) {
 
         if measure.voices.is_empty() {
             // Empty measure pad
-             for line in &mut lines {
+            for line in &mut lines {
                 line.push_str("----");
             }
             continue;
@@ -127,40 +138,40 @@ fn print_ascii_tab(track: &Track) {
 
         // We only verify Voice 0
         let voice = &measure.voices[0];
-        
+
         for beat in &voice.beats {
-             // Determine columns needed for this beat (e.g., 3 chars: "12-" or "-")
-             // Check notes in this beat
-             let mut col_vals: Vec<String> = vec!["-".to_string(); num_strings];
-             
-             for note in &beat.notes {
-                 // Note string index (1-based usually)
-                 // If note.string is 1, it corresponds to track.strings[0] (High E) -> lines[0]
-                 let s_idx = (note.string - 1) as usize;
-                 if s_idx < num_strings {
-                     col_vals[s_idx] = note.value.to_string();
-                 }
-             }
+            // Determine columns needed for this beat (e.g., 3 chars: "12-" or "-")
+            // Check notes in this beat
+            let mut col_vals: Vec<String> = vec!["-".to_string(); num_strings];
 
-             // Find max width for this column (beat) to align vertical start
-             let max_width = col_vals.iter().map(|s| s.len()).max().unwrap_or(1);
-             let cell_width = max_width + 1; // +1 for spacing
+            for note in &beat.notes {
+                // Note string index (1-based usually)
+                // If note.string is 1, it corresponds to track.strings[0] (High E) -> lines[0]
+                let s_idx = (note.string - 1) as usize;
+                if s_idx < num_strings {
+                    col_vals[s_idx] = note.value.to_string();
+                }
+            }
 
-             for i in 0..num_strings {
-                 let s = &col_vals[i];
-                 lines[i].push_str(s);
-                 // Padding
-                 for _ in 0..(cell_width - s.len()) {
-                     lines[i].push('-');
-                 }
-             }
+            // Find max width for this column (beat) to align vertical start
+            let max_width = col_vals.iter().map(|s| s.len()).max().unwrap_or(1);
+            let cell_width = max_width + 1; // +1 for spacing
+
+            for i in 0..num_strings {
+                let s = &col_vals[i];
+                lines[i].push_str(s);
+                // Padding
+                for _ in 0..(cell_width - s.len()) {
+                    lines[i].push('-');
+                }
+            }
         }
     }
 
     // Print lines
-    println!("");
+    println!();
     for line in lines {
         println!("{}", line);
     }
-    println!("");
+    println!();
 }

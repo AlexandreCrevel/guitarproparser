@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 
+use crate::io::gpif::*;
 use crate::model::{
-    song::*,
-    track::Track as SongTrack,
-    measure::Measure,
-    headers::{MeasureHeader, Marker},
     beat::{Beat as SongBeat, Voice as SongVoice},
-    note::Note as SongNote,
     effects::*,
     enums::*,
+    headers::{Marker, MeasureHeader},
     key_signature::*,
+    measure::Measure,
+    note::Note as SongNote,
+    song::*,
+    track::Track as SongTrack,
 };
-use crate::io::gpif::*;
 
 pub trait SongGpifOps {
     fn read_gpif(&mut self, gpif: &Gpif);
@@ -34,7 +34,10 @@ fn note_value_to_duration(s: &str) -> u16 {
         "64th" => 64,
         "128th" => 128,
         _ => {
-            eprintln!("Warning: unknown GPIF note value '{}', defaulting to Quarter", s);
+            eprintln!(
+                "Warning: unknown GPIF note value '{}', defaulting to Quarter",
+                s
+            );
             4
         }
     }
@@ -44,12 +47,12 @@ fn note_value_to_duration(s: &str) -> u16 {
 fn dynamic_to_velocity(s: &str) -> i16 {
     match s {
         "PPP" => MIN_VELOCITY,
-        "PP"  => MIN_VELOCITY + VELOCITY_INCREMENT,
-        "P"   => MIN_VELOCITY + VELOCITY_INCREMENT * 2,
-        "MP"  => MIN_VELOCITY + VELOCITY_INCREMENT * 3,
-        "MF"  => MIN_VELOCITY + VELOCITY_INCREMENT * 4,
-        "F"   => FORTE,
-        "FF"  => MIN_VELOCITY + VELOCITY_INCREMENT * 6,
+        "PP" => MIN_VELOCITY + VELOCITY_INCREMENT,
+        "P" => MIN_VELOCITY + VELOCITY_INCREMENT * 2,
+        "MP" => MIN_VELOCITY + VELOCITY_INCREMENT * 3,
+        "MF" => MIN_VELOCITY + VELOCITY_INCREMENT * 4,
+        "F" => FORTE,
+        "FF" => MIN_VELOCITY + VELOCITY_INCREMENT * 6,
         "FFF" => MIN_VELOCITY + VELOCITY_INCREMENT * 7,
         _ => FORTE,
     }
@@ -73,12 +76,24 @@ fn parse_ids(s: &str) -> Vec<i32> {
 /// - bit 5 (0x20): Slide in from above
 fn parse_slide_flags(flags: i32) -> Vec<SlideType> {
     let mut v = Vec::with_capacity(6);
-    if (flags & 0x01) != 0 { v.push(SlideType::ShiftSlideTo); }
-    if (flags & 0x02) != 0 { v.push(SlideType::LegatoSlideTo); }
-    if (flags & 0x04) != 0 { v.push(SlideType::OutDownwards); }
-    if (flags & 0x08) != 0 { v.push(SlideType::OutUpWards); }
-    if (flags & 0x10) != 0 { v.push(SlideType::IntoFromBelow); }
-    if (flags & 0x20) != 0 { v.push(SlideType::IntoFromAbove); }
+    if (flags & 0x01) != 0 {
+        v.push(SlideType::ShiftSlideTo);
+    }
+    if (flags & 0x02) != 0 {
+        v.push(SlideType::LegatoSlideTo);
+    }
+    if (flags & 0x04) != 0 {
+        v.push(SlideType::OutDownwards);
+    }
+    if (flags & 0x08) != 0 {
+        v.push(SlideType::OutUpWards);
+    }
+    if (flags & 0x10) != 0 {
+        v.push(SlideType::IntoFromBelow);
+    }
+    if (flags & 0x20) != 0 {
+        v.push(SlideType::IntoFromAbove);
+    }
     v
 }
 
@@ -95,7 +110,10 @@ fn parse_harmonic_type(htype: &str) -> HarmonicEffect {
         "Feedback" => HarmonicType::Pinch,
         _ => HarmonicType::Natural,
     };
-    HarmonicEffect { kind, ..Default::default() }
+    HarmonicEffect {
+        kind,
+        ..Default::default()
+    }
 }
 
 /// Parse direction string to DirectionSign enum.
@@ -135,15 +153,31 @@ fn build_bend_effect(origin: f64, destination: f64) -> BendEffect {
     } else if origin > 0.0 && destination == 0.0 {
         bend.kind = BendType::ReleaseUp;
     } else if origin > 0.0 && destination > 0.0 {
-        if destination > origin { bend.kind = BendType::Bend; }
-        else if destination < origin { bend.kind = BendType::ReleaseUp; }
-        else { bend.kind = BendType::Bend; }
+        if destination > origin {
+            bend.kind = BendType::Bend;
+        } else if destination < origin {
+            bend.kind = BendType::ReleaseUp;
+        } else {
+            bend.kind = BendType::Bend;
+        }
     }
 
     bend.value = (destination.max(origin) / GP_BEND_SEMITONE as f64 * 2.0).round() as i16;
-    bend.points.push(BendPoint { position: 0, value: origin_val, vibrato: false });
-    bend.points.push(BendPoint { position: 6, value: ((origin_val as i16 + dest_val as i16) / 2) as i8, vibrato: false });
-    bend.points.push(BendPoint { position: 12, value: dest_val, vibrato: false });
+    bend.points.push(BendPoint {
+        position: 0,
+        value: origin_val,
+        vibrato: false,
+    });
+    bend.points.push(BendPoint {
+        position: 6,
+        value: ((origin_val as i16 + dest_val as i16) / 2) as i8,
+        vibrato: false,
+    });
+    bend.points.push(BendPoint {
+        position: 12,
+        value: dest_val,
+        vibrato: false,
+    });
     bend
 }
 
@@ -152,10 +186,13 @@ fn extract_tuning(properties: &[Property]) -> Vec<(i8, i8)> {
     for prop in properties {
         if prop.name == "Tuning" {
             if let Some(pitches_str) = &prop.pitches {
-                let pitches: Vec<i8> = pitches_str.split_whitespace()
+                let pitches: Vec<i8> = pitches_str
+                    .split_whitespace()
                     .filter_map(|s| s.parse::<i8>().ok())
                     .collect();
-                return pitches.iter().enumerate()
+                return pitches
+                    .iter()
+                    .enumerate()
                     .map(|(i, &pitch)| ((i + 1) as i8, pitch))
                     .collect();
             }
@@ -194,7 +231,10 @@ impl SongGpifOps for Song {
                         self.tempo = match tempo_str.parse::<f64>() {
                             Ok(v) => v as i16,
                             Err(_) => {
-                                eprintln!("Warning: failed to parse tempo '{}', defaulting to 120", tempo_str);
+                                eprintln!(
+                                    "Warning: failed to parse tempo '{}', defaulting to 120",
+                                    tempo_str
+                                );
                                 120
                             }
                         };
@@ -205,10 +245,12 @@ impl SongGpifOps for Song {
 
         // 3. Build lookup maps
         let bars_map: HashMap<i32, &Bar> = gpif.bars.bars.iter().map(|b| (b.id, b)).collect();
-        let voices_map: HashMap<i32, &Voice> = gpif.voices.voices.iter().map(|v| (v.id, v)).collect();
+        let voices_map: HashMap<i32, &Voice> =
+            gpif.voices.voices.iter().map(|v| (v.id, v)).collect();
         let beats_map: HashMap<i32, &Beat> = gpif.beats.beats.iter().map(|b| (b.id, b)).collect();
         let notes_map: HashMap<i32, &Note> = gpif.notes.notes.iter().map(|n| (n.id, n)).collect();
-        let rhythms_map: HashMap<i32, &Rhythm> = gpif.rhythms.rhythms.iter().map(|r| (r.id, r)).collect();
+        let rhythms_map: HashMap<i32, &Rhythm> =
+            gpif.rhythms.rhythms.iter().map(|r| (r.id, r)).collect();
 
         // 4. Measure Headers (MasterBars) — also collects per-track bar IDs
         self.measure_headers.clear();
@@ -216,8 +258,10 @@ impl SongGpifOps for Song {
         let mut track_bar_ids: Vec<Vec<i32>> = vec![Vec::new(); num_tracks];
 
         for (mh_idx, mb) in gpif.master_bars.master_bars.iter().enumerate() {
-            let mut mh = MeasureHeader::default();
-            mh.number = (mh_idx + 1) as u16;
+            let mut mh = MeasureHeader {
+                number: (mh_idx + 1) as u16,
+                ..Default::default()
+            };
 
             // Time signature
             let time_parts: Vec<&str> = mb.time.split('/').collect();
@@ -256,7 +300,9 @@ impl SongGpifOps for Song {
                 let mut bitmask: u8 = 0;
                 for tok in alt_str.split_whitespace() {
                     if let Ok(n) = tok.parse::<u8>() {
-                        if n > 0 && n <= 8 { bitmask |= 1 << (n - 1); }
+                        if n > 0 && n <= 8 {
+                            bitmask |= 1 << (n - 1);
+                        }
                     }
                 }
                 mh.repeat_alternative = bitmask;
@@ -267,10 +313,15 @@ impl SongGpifOps for Song {
 
             // Marker (Section)
             if let Some(section) = &mb.section {
-                let title = section.text.as_deref()
+                let title = section
+                    .text
+                    .as_deref()
                     .unwrap_or(section.letter.as_deref().unwrap_or("Section"));
                 // GP6/7 GPIF XML does not include marker color; use the default (red).
-                mh.marker = Some(Marker { title: title.to_string(), color: 0xff0000 });
+                mh.marker = Some(Marker {
+                    title: title.to_string(),
+                    color: 0xff0000,
+                });
             }
 
             // Fermatas
@@ -311,14 +362,19 @@ impl SongGpifOps for Song {
         self.tracks.clear();
 
         for (t_idx, g_track) in gpif.tracks.tracks.iter().enumerate() {
-            let mut track = SongTrack::default();
-            track.name = g_track.name.clone();
-            track.short_name = g_track.short_name.clone();
-            track.number = (t_idx + 1) as i32;
+            let mut track = SongTrack {
+                name: g_track.name.clone(),
+                short_name: g_track.short_name.clone(),
+                number: (t_idx + 1) as i32,
+                ..Default::default()
+            };
 
             // Color
             if let Some(color_str) = &g_track.color {
-                let rgb: Vec<i32> = color_str.split_whitespace().filter_map(|s| s.parse().ok()).collect();
+                let rgb: Vec<i32> = color_str
+                    .split_whitespace()
+                    .filter_map(|s| s.parse().ok())
+                    .collect();
                 if rgb.len() == 3 {
                     track.color = rgb[0] * 65536 + rgb[1] * 256 + rgb[2];
                 }
@@ -333,7 +389,9 @@ impl SongGpifOps for Song {
                     for staff in &staves.staves {
                         if let Some(props) = &staff.properties {
                             track.strings = extract_tuning(&props.properties);
-                            if !track.strings.is_empty() { break; }
+                            if !track.strings.is_empty() {
+                                break;
+                            }
                         }
                     }
                 }
@@ -367,9 +425,11 @@ impl SongGpifOps for Song {
 
             // Measures
             for m_idx in 0..num_measures {
-                let mut measure = Measure::default();
-                measure.number = m_idx + 1;
-                measure.track_index = t_idx;
+                let mut measure = Measure {
+                    number: m_idx + 1,
+                    track_index: t_idx,
+                    ..Default::default()
+                };
 
                 if m_idx < self.measure_headers.len() {
                     measure.time_signature = self.measure_headers[m_idx].time_signature.clone();
@@ -388,7 +448,9 @@ impl SongGpifOps for Song {
                     measure.voices.clear();
 
                     for &vid in &voice_ids {
-                        if vid < 0 { continue; }
+                        if vid < 0 {
+                            continue;
+                        }
                         let mut s_voice = SongVoice::default();
 
                         if let Some(g_voice) = voices_map.get(&vid) {
@@ -397,7 +459,9 @@ impl SongGpifOps for Song {
                             for &bid in &beat_ids {
                                 if let Some(g_beat) = beats_map.get(&bid) {
                                     let s_beat = convert_beat(
-                                        g_beat, &rhythms_map, &notes_map,
+                                        g_beat,
+                                        &rhythms_map,
+                                        &notes_map,
                                         &mut current_velocity,
                                     );
                                     s_voice.beats.push(s_beat);
@@ -512,11 +576,16 @@ fn convert_beat(
     match &g_beat.notes {
         Some(notes_str) => {
             let note_ids = parse_ids(notes_str);
-            s_beat.status = if note_ids.is_empty() { BeatStatus::Rest } else { BeatStatus::Normal };
+            s_beat.status = if note_ids.is_empty() {
+                BeatStatus::Rest
+            } else {
+                BeatStatus::Normal
+            };
 
             for &nid in &note_ids {
                 if let Some(g_note) = notes_map.get(&nid) {
-                    let s_note = convert_note(g_note, *current_velocity, is_grace_beat, grace_on_beat);
+                    let s_note =
+                        convert_note(g_note, *current_velocity, is_grace_beat, grace_on_beat);
                     s_beat.notes.push(s_note);
                 }
             }
@@ -529,10 +598,17 @@ fn convert_beat(
     s_beat
 }
 
-fn convert_note(g_note: &Note, velocity: i16, is_grace_beat: bool, grace_on_beat: bool) -> SongNote {
-    let mut s_note = SongNote::default();
-    s_note.velocity = velocity;
-    s_note.kind = NoteType::Normal;
+fn convert_note(
+    g_note: &Note,
+    velocity: i16,
+    is_grace_beat: bool,
+    grace_on_beat: bool,
+) -> SongNote {
+    let mut s_note = SongNote {
+        velocity,
+        kind: NoteType::Normal,
+        ..Default::default()
+    };
 
     let mut bend_origin: Option<f64> = None;
     let mut bend_dest: Option<f64> = None;
@@ -540,16 +616,26 @@ fn convert_note(g_note: &Note, velocity: i16, is_grace_beat: bool, grace_on_beat
     for prop in &g_note.properties.properties {
         match prop.name.as_str() {
             "Fret" => {
-                if let Some(f) = prop.fret { s_note.value = f as i16; }
+                if let Some(f) = prop.fret {
+                    s_note.value = f as i16;
+                }
             }
             "String" => {
-                if let Some(s) = prop.string { s_note.string = s as i8; }
+                if let Some(s) = prop.string {
+                    s_note.string = s as i8;
+                }
             }
             "PalmMuted" => {
-                if prop.enable.is_some() { s_note.effect.palm_mute = true; }
+                if prop.enable.is_some() {
+                    s_note.effect.palm_mute = true;
+                }
             }
-            "BendOriginValue" => { bend_origin = prop.float; }
-            "BendDestinationValue" => { bend_dest = prop.float; }
+            "BendOriginValue" => {
+                bend_origin = prop.float;
+            }
+            "BendDestinationValue" => {
+                bend_dest = prop.float;
+            }
             "Slide" => {
                 if let Some(flags) = prop.flags {
                     s_note.effect.slides = parse_slide_flags(flags);
@@ -568,10 +654,14 @@ fn convert_note(g_note: &Note, velocity: i16, is_grace_beat: bool, grace_on_beat
                 }
             }
             "HopoOrigin" | "HopoDestination" => {
-                if prop.enable.is_some() { s_note.effect.hammer = true; }
+                if prop.enable.is_some() {
+                    s_note.effect.hammer = true;
+                }
             }
             "Dead" | "Muted" => {
-                if prop.enable.is_some() { s_note.kind = NoteType::Dead; }
+                if prop.enable.is_some() {
+                    s_note.kind = NoteType::Dead;
+                }
             }
             _ => {}
         }
@@ -592,19 +682,31 @@ fn convert_note(g_note: &Note, velocity: i16, is_grace_beat: bool, grace_on_beat
     }
 
     // Vibrato
-    if g_note.vibrato.is_some() { s_note.effect.vibrato = true; }
+    if g_note.vibrato.is_some() {
+        s_note.effect.vibrato = true;
+    }
 
     // Let Ring
-    if g_note.let_ring.is_some() { s_note.effect.let_ring = true; }
+    if g_note.let_ring.is_some() {
+        s_note.effect.let_ring = true;
+    }
 
     // Ghost note
-    if g_note.anti_accent.is_some() { s_note.effect.ghost_note = true; }
+    if g_note.anti_accent.is_some() {
+        s_note.effect.ghost_note = true;
+    }
 
     // Accent bitmask
     if let Some(accent) = g_note.accent {
-        if (accent & 0x01) != 0 { s_note.effect.staccato = true; }
-        if (accent & 0x02) != 0 || (accent & 0x08) != 0 { s_note.effect.accentuated_note = true; }
-        if (accent & 0x04) != 0 { s_note.effect.heavy_accentuated_note = true; }
+        if (accent & 0x01) != 0 {
+            s_note.effect.staccato = true;
+        }
+        if (accent & 0x02) != 0 || (accent & 0x08) != 0 {
+            s_note.effect.accentuated_note = true;
+        }
+        if (accent & 0x04) != 0 {
+            s_note.effect.heavy_accentuated_note = true;
+        }
     }
 
     // Ornament
