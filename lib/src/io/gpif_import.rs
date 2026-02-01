@@ -8,6 +8,7 @@ use crate::model::{
     headers::{Marker, MeasureHeader},
     key_signature::*,
     measure::Measure,
+    mix_table::*,
     note::Note as SongNote,
     song::*,
     track::Track as SongTrack,
@@ -33,13 +34,7 @@ fn note_value_to_duration(s: &str) -> u16 {
         "32nd" => 32,
         "64th" => 64,
         "128th" => 128,
-        _ => {
-            eprintln!(
-                "Warning: unknown GPIF note value '{}', defaulting to Quarter",
-                s
-            );
-            4
-        }
+        _ => 4,
     }
 }
 
@@ -230,15 +225,20 @@ impl SongGpifOps for Song {
                     if let Some(tempo_str) = auto.value.split_whitespace().next() {
                         self.tempo = match tempo_str.parse::<f64>() {
                             Ok(v) => v as i16,
-                            Err(_) => {
-                                eprintln!(
-                                    "Warning: failed to parse tempo '{}', defaulting to 120",
-                                    tempo_str
-                                );
-                                120
-                            }
+                            Err(_) => 120,
                         };
                     }
+                }
+            }
+        }
+
+        // 2b. Master RSE
+        if let Some(rse_wrapper) = &gpif.master_track.rse {
+            if let Some(master) = &rse_wrapper.master {
+                if let Some(vol) = master.volume {
+                    // GPX volume is typically 0.0-1.0 or similar.
+                    // Scorelib model expects arbitrary flow. we store as is.
+                    self.master_effect.volume = vol * 100.0; // rudimentary mapping
                 }
             }
         }
@@ -423,6 +423,17 @@ impl SongGpifOps for Song {
             // Current dynamic (persists across beats)
             let mut current_velocity: i16 = FORTE;
 
+            // RSE (GPX)
+            if let Some(rse_wrapper) = &g_track.rse {
+                // Populate humanize/instrument from GPX RSE if possible
+                // Currently just setting default or mapping names if available
+                if let Some(chains) = &rse_wrapper.effect_chains {
+                    if let Some(first_chain) = chains.effect_chains.first() {
+                        track.rse.instrument.effect_category = first_chain.name.clone();
+                    }
+                }
+            }
+
             // Measures
             for m_idx in 0..num_measures {
                 let mut measure = Measure {
@@ -528,7 +539,12 @@ fn convert_beat(
     // Wah effect
     if let Some(wah_str) = &g_beat.wah {
         if wah_str == "Open" {
-            s_beat.effect.slap_effect = SlapEffect::None; // placeholder, wah is stored at mix table level in GP5
+            let mut mtc = MixTableChange::default();
+            mtc.wah = Some(WahEffect {
+                value: 100, // Fully open
+                display: true,
+            });
+            s_beat.effect.mix_table_change = Some(mtc);
         }
     }
 

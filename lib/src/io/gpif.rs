@@ -66,6 +66,22 @@ pub struct MasterTrack {
     pub tracks_count: String,
     #[serde(rename = "Automations", default)]
     pub automations: Option<AutomationsWrapper>,
+    #[serde(rename = "RSE", default)]
+    pub rse: Option<RseMasterWrapper>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RseMasterWrapper {
+    #[serde(rename = "Master", default)]
+    pub master: Option<RseMaster>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RseMaster {
+    #[serde(rename = "Volume", default)]
+    pub volume: Option<f32>,
+    #[serde(rename = "Effect", default)]
+    pub effects: Vec<RseEffect>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -116,6 +132,52 @@ pub struct Track {
     pub general_midi: Option<GeneralMidi>,
     #[serde(rename = "Transpose", default)]
     pub transpose: Option<Transpose>,
+    #[serde(rename = "RSE", default)]
+    pub rse: Option<RseTrackWrapper>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RseTrackWrapper {
+    #[serde(rename = "ChannelStrip", default)]
+    pub channel_strip: Option<ChannelStrip>,
+    #[serde(rename = "EffectChains", default)]
+    pub effect_chains: Option<EffectChainsWrapper>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ChannelStrip {
+    #[serde(rename = "Parameters", default)]
+    pub parameters: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EffectChainsWrapper {
+    #[serde(rename = "EffectChain", default)]
+    pub effect_chains: Vec<EffectChain>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EffectChain {
+    #[serde(rename = "Name", default)]
+    pub name: String,
+    #[serde(rename = "Rail", default)]
+    pub rails: Vec<Rail>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Rail {
+    #[serde(rename = "@name", default)]
+    pub name: String,
+    #[serde(rename = "Effect", default)]
+    pub effects: Vec<RseEffect>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct RseEffect {
+    #[serde(rename = "@id", default)]
+    pub id: String,
+    #[serde(rename = "Parameters", default)]
+    pub parameters: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -206,7 +268,10 @@ pub struct Key {
 
 impl Default for Key {
     fn default() -> Self {
-        Key { accidental_count: 0, mode: "Major".to_string() }
+        Key {
+            accidental_count: 0,
+            mode: "Major".to_string(),
+        }
     }
 }
 

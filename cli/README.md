@@ -22,7 +22,7 @@ cargo run -p cli -- --input path/to/file.gp5 --tab
 
 ## Options
 
-- `--input <FILE>` (or `-i`): **(Required)** Path to the Guitar Pro file (.gp3, .gp4, .gp5, .gp).
+- `--input <FILE>` (or `-i`): **(Required)** Path to the Guitar Pro file (.gp3, .gp4, .gp5, .gp, .gpx).
 - `--tab` (or `-t`): Display the first track as ASCII tablature in the terminal.
 
 ## Current Infrastructure

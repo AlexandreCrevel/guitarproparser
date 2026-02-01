@@ -13,6 +13,13 @@ pub enum GpError {
     FormatError(String),
     /// IO errors
     Io(std::io::Error),
+    /// Value out of allowed range
+    InvalidRange {
+        context: &'static str,
+        value: i64,
+        min: i64,
+        max: i64,
+    },
 }
 
 /// Convenience type alias
@@ -22,7 +29,11 @@ impl fmt::Display for GpError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             GpError::UnexpectedEof { offset, needed } => {
-                write!(f, "Unexpected end of file at offset {}, needed {} more bytes", offset, needed)
+                write!(
+                    f,
+                    "Unexpected end of file at offset {}, needed {} more bytes",
+                    offset, needed
+                )
             }
             GpError::InvalidValue { context, value } => {
                 write!(f, "Invalid value {} for {}", value, context)
@@ -35,6 +46,18 @@ impl fmt::Display for GpError {
             }
             GpError::Io(err) => {
                 write!(f, "IO error: {}", err)
+            }
+            GpError::InvalidRange {
+                context,
+                value,
+                min,
+                max,
+            } => {
+                write!(
+                    f,
+                    "Value {} for {} is out of range [{}..{}]",
+                    value, context, min, max
+                )
             }
         }
     }
