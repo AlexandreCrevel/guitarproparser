@@ -96,10 +96,17 @@ fn decompress_bcfz(data: &[u8]) -> Result<Vec<u8>, String> {
             let word_size = bits.read_bits(4) as usize;
             let offset = bits.read_bits_reversed(word_size) as usize;
             let size = bits.read_bits_reversed(word_size) as usize;
-            let source_start = output.len().wrapping_sub(offset);
-            let copy_len = if size > offset { offset } else { size };
-            for i in 0..copy_len {
-                let byte = output[source_start + i];
+            if offset == 0 || offset > output.len() {
+                return Err(format!(
+                    "BCFZ: invalid back-reference offset {} (output len {})",
+                    offset, output.len()
+                ));
+            }
+            let source_start = output.len() - offset;
+            // LZ77 overlapping copy: when size > offset the source overlaps
+            // the destination, so we must copy byte-by-byte with modular indexing.
+            for i in 0..size {
+                let byte = output[source_start + (i % offset)];
                 output.push(byte);
             }
         } else {

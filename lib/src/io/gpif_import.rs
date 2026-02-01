@@ -21,7 +21,8 @@ pub trait SongGpifOps {
 // Helper functions
 // ---------------------------------------------------------------------------
 
-/// Convert GPIF note value string to Duration.value
+/// Convert GPIF note value string to Duration.value.
+/// Falls back to Quarter (4) for unknown values.
 fn note_value_to_duration(s: &str) -> u16 {
     match s {
         "Whole" => 1,
@@ -32,7 +33,10 @@ fn note_value_to_duration(s: &str) -> u16 {
         "32nd" => 32,
         "64th" => 64,
         "128th" => 128,
-        _ => 4,
+        _ => {
+            eprintln!("Warning: unknown GPIF note value '{}', defaulting to Quarter", s);
+            4
+        }
     }
 }
 
@@ -173,7 +177,13 @@ impl SongGpifOps for Song {
             for auto in &automations.automations {
                 if auto.automation_type == "Tempo" && auto.bar == 0 {
                     if let Some(tempo_str) = auto.value.split_whitespace().next() {
-                        self.tempo = tempo_str.parse::<f64>().unwrap_or(120.0) as i16;
+                        self.tempo = match tempo_str.parse::<f64>() {
+                            Ok(v) => v as i16,
+                            Err(_) => {
+                                eprintln!("Warning: failed to parse tempo '{}', defaulting to 120", tempo_str);
+                                120
+                            }
+                        };
                     }
                 }
             }
@@ -245,6 +255,7 @@ impl SongGpifOps for Song {
             if let Some(section) = &mb.section {
                 let title = section.text.as_deref()
                     .unwrap_or(section.letter.as_deref().unwrap_or("Section"));
+                // GP6/7 GPIF XML does not include marker color; use the default (red).
                 mh.marker = Some(Marker { title: title.to_string(), color: 0xff0000 });
             }
 
@@ -347,7 +358,7 @@ impl SongGpifOps for Song {
 
                             for &bid in &beat_ids {
                                 if let Some(g_beat) = beats_map.get(&bid) {
-                                    let s_beat = self.convert_beat(
+                                    let s_beat = convert_beat(
                                         g_beat, &rhythms_map, &notes_map,
                                         &mut current_velocity,
                                     );
@@ -365,14 +376,12 @@ impl SongGpifOps for Song {
     }
 }
 
-impl Song {
-    fn convert_beat(
-        &self,
-        g_beat: &Beat,
-        rhythms_map: &HashMap<i32, &Rhythm>,
-        notes_map: &HashMap<i32, &Note>,
-        current_velocity: &mut i16,
-    ) -> SongBeat {
+fn convert_beat(
+    g_beat: &Beat,
+    rhythms_map: &HashMap<i32, &Rhythm>,
+    notes_map: &HashMap<i32, &Note>,
+    current_velocity: &mut i16,
+) -> SongBeat {
         let mut s_beat = SongBeat::default();
 
         // Duration from Rhythm
@@ -446,25 +455,24 @@ impl Song {
         }
 
         // Notes
-        let has_notes = g_beat.notes.is_some();
-        if let Some(notes_str) = &g_beat.notes {
-            let note_ids = parse_ids(notes_str);
-            s_beat.status = if note_ids.is_empty() { BeatStatus::Rest } else { BeatStatus::Normal };
+        match &g_beat.notes {
+            Some(notes_str) => {
+                let note_ids = parse_ids(notes_str);
+                s_beat.status = if note_ids.is_empty() { BeatStatus::Rest } else { BeatStatus::Normal };
 
-            for &nid in &note_ids {
-                if let Some(g_note) = notes_map.get(&nid) {
-                    let s_note = convert_note(g_note, *current_velocity, is_grace_beat, grace_on_beat);
-                    s_beat.notes.push(s_note);
+                for &nid in &note_ids {
+                    if let Some(g_note) = notes_map.get(&nid) {
+                        let s_note = convert_note(g_note, *current_velocity, is_grace_beat, grace_on_beat);
+                        s_beat.notes.push(s_note);
+                    }
                 }
+            }
+            None => {
+                s_beat.status = BeatStatus::Rest;
             }
         }
 
-        if !has_notes {
-            s_beat.status = BeatStatus::Rest;
-        }
-
         s_beat
-    }
 }
 
 fn convert_note(g_note: &Note, velocity: i16, is_grace_beat: bool, grace_on_beat: bool) -> SongNote {

@@ -156,6 +156,7 @@ pick-up-down.gp: OK
 pick-up-down.gp4: OK
 pick-up-down.gp5: OK
 pick-up-down.gpx: OK
+rage-against-the-machine_bombtrack-official-2210247.gpx: OK
 rasg.gp: OK
 rasg.gpx: OK
 repeated-bars.gp: OK

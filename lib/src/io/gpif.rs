@@ -312,6 +312,7 @@ pub struct Beat {
     pub dynamic: Option<String>,
     #[serde(rename = "GraceNotes", default)]
     pub grace_notes: Option<String>,
+    /// Note: "Fadding" is a typo in the upstream GP6 XML format (should be "Fading").
     #[serde(rename = "Fadding", default)]
     pub fadding: Option<String>,
     #[serde(rename = "Tremolo", default)]

@@ -508,11 +508,13 @@ fn test_gpx_keysig() {
 fn test_gpx_copyright() {
     let song = read_gpx("test/copyright.gpx");
     assert!(!song.tracks.is_empty());
+    assert!(!song.copyright.is_empty(), "copyright field should be populated");
 }
 #[test]
 fn test_gpx_tempo() {
     let song = read_gpx("test/tempo.gpx");
     assert!(!song.measure_headers.is_empty());
+    assert!(song.tempo > 0, "tempo should be parsed from automations");
 }
 #[test]
 fn test_gpx_rest_centered() {
@@ -543,6 +545,8 @@ fn test_gpx_test_irr_tuplet() {
 fn test_gpx_repeats() {
     let song = read_gpx("test/repeats.gpx");
     assert!(!song.measure_headers.is_empty());
+    let has_repeat = song.measure_headers.iter().any(|mh| mh.repeat_open || mh.repeat_close > 0);
+    assert!(has_repeat, "repeats.gpx should have at least one repeat marker");
 }
 #[test]
 fn test_gpx_repeated_bars() {
@@ -553,6 +557,8 @@ fn test_gpx_repeated_bars() {
 fn test_gpx_volta() {
     let song = read_gpx("test/volta.gpx");
     assert!(!song.measure_headers.is_empty());
+    let has_volta = song.measure_headers.iter().any(|mh| mh.repeat_alternative > 0);
+    assert!(has_volta, "volta.gpx should have at least one alternate ending");
 }
 #[test]
 fn test_gpx_multivoices() {
@@ -563,6 +569,8 @@ fn test_gpx_multivoices() {
 fn test_gpx_double_bar() {
     let song = read_gpx("test/double-bar.gpx");
     assert!(!song.measure_headers.is_empty());
+    let has_double_bar = song.measure_headers.iter().any(|mh| mh.double_bar);
+    assert!(has_double_bar, "double-bar.gpx should have at least one double bar");
 }
 #[test]
 fn test_gpx_clefs() {
@@ -573,6 +581,17 @@ fn test_gpx_clefs() {
 fn test_gpx_bend() {
     let song = read_gpx("test/bend.gpx");
     assert!(!song.tracks.is_empty());
+    // Verify that at least one note has a bend effect
+    let has_bend = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.effect.bend.is_some())
+                })
+            })
+        })
+    });
+    assert!(has_bend, "bend.gpx should contain at least one note with a bend effect");
 }
 #[test]
 fn test_gpx_basic_bend() {
@@ -583,16 +602,46 @@ fn test_gpx_basic_bend() {
 fn test_gpx_vibrato() {
     let song = read_gpx("test/vibrato.gpx");
     assert!(!song.tracks.is_empty());
+    let has_vibrato = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.effect.vibrato)
+                })
+            })
+        })
+    });
+    assert!(has_vibrato, "vibrato.gpx should contain at least one note with vibrato");
 }
 #[test]
 fn test_gpx_let_ring() {
     let song = read_gpx("test/let-ring.gpx");
     assert!(!song.tracks.is_empty());
+    let has_let_ring = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.effect.let_ring)
+                })
+            })
+        })
+    });
+    assert!(has_let_ring, "let-ring.gpx should contain at least one let-ring note");
 }
 #[test]
 fn test_gpx_palm_mute() {
     let song = read_gpx("test/palm-mute.gpx");
     assert!(!song.tracks.is_empty());
+    let has_palm_mute = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.effect.palm_mute)
+                })
+            })
+        })
+    });
+    assert!(has_palm_mute, "palm-mute.gpx should contain at least one palm-muted note");
 }
 #[test]
 fn test_gpx_accent() {
@@ -658,6 +707,16 @@ fn test_gpx_high_pitch() {
 fn test_gpx_shift_slide() {
     let song = read_gpx("test/shift-slide.gpx");
     assert!(!song.tracks.is_empty());
+    let has_slide = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| !n.effect.slides.is_empty())
+                })
+            })
+        })
+    });
+    assert!(has_slide, "shift-slide.gpx should contain at least one note with slide effect");
 }
 #[test]
 fn test_gpx_legato_slide() {
@@ -703,6 +762,14 @@ fn test_gpx_rasg() {
 fn test_gpx_fade_in() {
     let song = read_gpx("test/fade-in.gpx");
     assert!(!song.tracks.is_empty());
+    let has_fade_in = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| b.effect.fade_in)
+            })
+        })
+    });
+    assert!(has_fade_in, "fade-in.gpx should contain at least one beat with fade-in");
 }
 #[test]
 fn test_gpx_volume_swell() {
