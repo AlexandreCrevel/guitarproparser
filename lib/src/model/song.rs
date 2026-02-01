@@ -245,7 +245,7 @@ impl Song {
     pub const _MIN_OFFSET: i32 = -24;*/
 
     /// Write data to a Vec<u8>, you are free to use the encoded data to write it in a file or in a database or do something else.
-    pub fn write(&self, version: (u8, u8, u8), clipboard: Option<bool>) -> Vec<u8> {
+    pub fn write(&self, version: (u8, u8, u8), clipboard: Option<bool>) -> GpResult<Vec<u8>> {
         let mut data: Vec<u8> = Vec::with_capacity(8388608); //capacity of 8MB, should be sufficient
         write_version(&mut data, version);
         if clipboard.is_some() && clipboard.unwrap() && version.0 >= 4 {
@@ -286,9 +286,9 @@ impl Song {
         write_i32(&mut data, self.tracks.len().to_i32().unwrap());
         self.write_measure_headers(&mut data, &version);
         self.write_tracks(&mut data, &version);
-        self.write_measures(&mut data, &version);
+        self.write_measures(&mut data, &version)?;
         write_i32(&mut data, 0);
-        data
+        Ok(data)
     }
     fn write_info(&self, data: &mut Vec<u8>, version: (u8, u8, u8)) {
         write_int_byte_size_string(data, &self.name);
