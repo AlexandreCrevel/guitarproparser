@@ -201,7 +201,7 @@ impl Song {
     pub fn read_gp(&mut self, data: &[u8]) -> GpResult<()> {
         use crate::io::gpx::read_gp;
         let gpif = read_gp(data)?;
-        self.version.number = (7, 0, 0); // Todo parse from gpif.version
+        self.version.number = (7, 0, 0); // default, overridden by read_gpif if GPVersion is present
         self.read_gpif(&gpif);
         Ok(())
     }

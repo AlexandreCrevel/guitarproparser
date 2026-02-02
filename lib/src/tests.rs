@@ -1,4 +1,5 @@
 use crate::model::song::Song;
+use crate::{BeatStrokeDirection, Fingering, Octave, SlapEffect};
 use fraction::ToPrimitive;
 use std::{fs, io::Read};
 
@@ -1451,16 +1452,21 @@ fn test_gp7_tremolos() {
 fn test_gp7_grace() {
     let song = read_gp7("test/grace.gp");
     assert!(!song.tracks.is_empty());
-    let has_grace = song.tracks.iter().any(|t| {
-        t.measures.iter().any(|m| {
-            m.voices.iter().any(|v| {
-                v.beats
-                    .iter()
-                    .any(|b| b.notes.iter().any(|n| n.effect.grace.is_some()))
-            })
-        })
-    });
-    assert!(has_grace, "grace.gp should contain at least one grace note");
+    let graces: Vec<_> = song
+        .tracks
+        .iter()
+        .flat_map(|t| t.measures.iter())
+        .flat_map(|m| m.voices.iter())
+        .flat_map(|v| v.beats.iter())
+        .flat_map(|b| b.notes.iter())
+        .filter_map(|n| n.effect.grace.as_ref())
+        .collect();
+    assert!(!graces.is_empty(), "grace.gp should contain at least one grace note");
+    // Grace duration should be derived from rhythm (32nd in this file → 2)
+    assert!(
+        graces.iter().any(|g| g.duration > 0),
+        "grace note duration should be set from rhythm"
+    );
 }
 #[test]
 fn test_gp7_grace_before_beat() {
@@ -1577,6 +1583,16 @@ fn test_gp7_brush() {
 fn test_gp7_arpeggio() {
     let song = read_gp7("test/arpeggio.gp");
     assert!(!song.tracks.is_empty());
+    let has_arpeggio = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats
+                    .iter()
+                    .any(|b| b.effect.stroke.direction != BeatStrokeDirection::None)
+            })
+        })
+    });
+    assert!(has_arpeggio, "arpeggio.gp should contain at least one arpeggio stroke");
 }
 #[test]
 fn test_gp7_rasg() {
@@ -1648,6 +1664,14 @@ fn test_gp7_dotted_gliss() {
 fn test_gp7_ottava1() {
     let song = read_gp7("test/ottava1.gp");
     assert!(!song.tracks.is_empty());
+    let has_ottava = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| b.octave == Octave::Ottava)
+            })
+        })
+    });
+    assert!(has_ottava, "ottava1.gp should contain an 8va octave effect");
 }
 #[test]
 fn test_gp7_ottava2() {
@@ -1688,6 +1712,28 @@ fn test_gp7_barre() {
 fn test_gp7_fingering() {
     let song = read_gp7("test/fingering.gp");
     assert!(!song.tracks.is_empty());
+    let has_left_finger = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.effect.left_hand_finger != Fingering::Open)
+                })
+            })
+        })
+    });
+    let has_right_finger = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| {
+                    b.notes.iter().any(|n| n.effect.right_hand_finger != Fingering::Open)
+                })
+            })
+        })
+    });
+    assert!(
+        has_left_finger || has_right_finger,
+        "fingering.gp should contain fingering annotations"
+    );
 }
 #[test]
 fn test_gp7_fret_diagram() {
@@ -1716,8 +1762,22 @@ fn test_gp7_directions() {
 }
 #[test]
 fn test_gp7_fermata() {
+    use crate::model::headers::FermataType;
     let song = read_gp7("test/fermata.gp");
     assert!(!song.tracks.is_empty());
+    let has_fermata = song
+        .measure_headers
+        .iter()
+        .any(|mh| !mh.fermatas.is_empty());
+    assert!(has_fermata, "fermata.gp should contain at least one fermata");
+    let first_fermata = song
+        .measure_headers
+        .iter()
+        .flat_map(|mh| mh.fermatas.iter())
+        .next()
+        .expect("should have a fermata");
+    assert_eq!(first_fermata.fermata_type, FermataType::Medium);
+    assert!(!first_fermata.offset.is_empty(), "fermata offset should be set");
 }
 #[test]
 fn test_gp7_free_time() {
@@ -1782,11 +1842,35 @@ fn test_gp7_tuplet_with_slur() {
 fn test_gp7_tap_slap_pop() {
     let song = read_gp7("test/tap-slap-pop.gp");
     assert!(!song.tracks.is_empty());
+    let slap_effects: Vec<_> = song
+        .tracks
+        .iter()
+        .flat_map(|t| t.measures.iter())
+        .flat_map(|m| m.voices.iter())
+        .flat_map(|v| v.beats.iter())
+        .map(|b| &b.effect.slap_effect)
+        .filter(|e| **e != SlapEffect::None)
+        .collect();
+    assert!(
+        !slap_effects.is_empty(),
+        "tap-slap-pop.gp should contain slap/pop/tap effects"
+    );
 }
 #[test]
 fn test_gp7_tremolo_bar() {
     let song = read_gp7("test/tremolo-bar.gp");
     assert!(!song.tracks.is_empty());
+    let has_tremolo_bar = song.tracks.iter().any(|t| {
+        t.measures.iter().any(|m| {
+            m.voices.iter().any(|v| {
+                v.beats.iter().any(|b| b.effect.tremolo_bar.is_some())
+            })
+        })
+    });
+    assert!(
+        has_tremolo_bar,
+        "tremolo-bar.gp should contain at least one whammy bar effect"
+    );
 }
 #[test]
 fn test_gp7_test() {
