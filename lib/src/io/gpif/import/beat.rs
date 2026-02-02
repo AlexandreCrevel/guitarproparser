@@ -1,9 +1,9 @@
 // GPIF beat conversion
 use std::collections::HashMap;
-use crate::io::gpif::{Beat, Note, Rhythm, Property};
-use crate::model::beat::{Beat as SongBeat, Voice as SongVoice};
+use crate::io::gpif::{Beat, Note, Rhythm};
+use crate::model::beat::Beat as SongBeat;
 use crate::model::enums::*;
-use crate::model::key_signature::{Duration, DURATION_EIGHTH};
+use crate::model::key_signature::DURATION_EIGHTH;
 use crate::model::mix_table::{MixTableChange, WahEffect};
 use super::helpers::*;
 use super::note::convert_note;

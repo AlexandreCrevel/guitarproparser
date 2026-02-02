@@ -2,14 +2,10 @@
 use std::collections::HashMap;
 use crate::io::gpif::*;
 use crate::model::{
-    beat::{Beat as SongBeat, Voice as SongVoice},
+    beat::Voice as SongVoice,
     effects::*,
-    enums::*,
-    headers::{FermataType, Marker, MeasureFermata, MeasureHeader},
-    key_signature::*,
+    headers::{Marker, MeasureFermata, MeasureHeader},
     measure::Measure,
-    mix_table::*,
-    note::Note as SongNote,
     song::*,
     track::Track as SongTrack,
 };

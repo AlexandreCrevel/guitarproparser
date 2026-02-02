@@ -5,7 +5,7 @@ use crate::model::enums::*;
 use crate::model::key_signature::Duration;
 use crate::model::note::Note as SongNote;
 use super::helpers::*;
-use super::bend::{build_bend_effect, build_bend_effect_full, build_whammy_effect};
+use super::bend::build_bend_effect_full;
 
 pub(crate) fn convert_note(
     g_note: &Note,
