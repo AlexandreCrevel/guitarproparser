@@ -46,7 +46,7 @@ fn grace_note_value_to_duration(s: &str) -> u8 {
         "16th" => 16,
         "32nd" => 32,
         "64th" => 64,
-        _ => 16,
+        _ => 16, // Default to sixteenth for unrecognized values (Whole/Half/Quarter/Eighth are not standard for grace notes)
     }
 }
 
@@ -152,15 +152,14 @@ fn parse_direction_sign(s: &str) -> Option<DirectionSign> {
 /// Build bend effect from GPIF origin/middle/destination values (float, in 1/100 semitone).
 /// When middle value and offsets are provided, uses them for a more accurate 3-point curve.
 ///
-/// Note: `middle_offset2` is accepted for completeness (GPIF provides it) but not used,
-/// because the GP5 bend model uses a simple 3-point curve with a single middle position.
+/// Note: GPIF provides a `middle_offset2` parameter, but it's not used here because
+/// the GP5 bend model uses a simple 3-point curve with a single middle position.
 fn build_bend_effect_full(
     origin: f64,
     middle: Option<f64>,
     destination: f64,
     origin_offset: Option<f64>,
     middle_offset1: Option<f64>,
-    _middle_offset2: Option<f64>,
     destination_offset: Option<f64>,
 ) -> BendEffect {
     let mut bend = BendEffect::default();
@@ -218,7 +217,7 @@ fn build_bend_effect_full(
 
 /// Build bend effect from simple origin/destination values (backwards compatible).
 fn build_bend_effect(origin: f64, destination: f64) -> BendEffect {
-    build_bend_effect_full(origin, None, destination, None, None, None, None)
+    build_bend_effect_full(origin, None, destination, None, None, None)
 }
 
 /// Build a whammy bar bend effect from GPIF Whammy element attributes.
@@ -229,7 +228,6 @@ fn build_whammy_effect(w: &WhammyInfo) -> BendEffect {
         w.destination_value.unwrap_or(0.0),
         w.origin_offset,
         w.middle_offset1,
-        w.middle_offset2,
         w.destination_offset,
     )
 }
@@ -281,8 +279,8 @@ fn parse_fraction_offset(s: &str) -> (i32, i32) {
     let parts: Vec<&str> = s.split('/').collect();
     if parts.len() == 2 {
         let num = parts[0].parse::<i32>().unwrap_or(0);
-        let den = parts[1].parse::<i32>().unwrap_or(1);
-        (num, if den == 0 { 1 } else { den })
+        let den = parts[1].parse::<i32>().unwrap_or(1).max(1);
+        (num, den)
     } else {
         (0, 1)
     }
@@ -299,8 +297,7 @@ fn parse_gpif_version(gpif: &Gpif, default: (u8, u8, u8)) -> (u8, u8, u8) {
         return match parts.len() {
             1 => (parts[0], 0, 0),
             2 => (parts[0], parts[1], 0),
-            3 => (parts[0], parts[1], parts[2]),
-            _ if parts.len() > 3 => (parts[0], parts[1], parts[2]),
+            3.. => (parts[0], parts[1], parts[2]),
             _ => default,
         };
     }
@@ -823,7 +820,6 @@ fn convert_note(
     let mut bend_middle: Option<f64> = None;
     let mut bend_origin_offset: Option<f64> = None;
     let mut bend_middle_offset1: Option<f64> = None;
-    let mut bend_middle_offset2: Option<f64> = None;
     let mut bend_dest_offset: Option<f64> = None;
 
     for prop in &g_note.properties.properties {
@@ -859,7 +855,7 @@ fn convert_note(
                 bend_middle_offset1 = prop.float;
             }
             "BendMiddleOffset2" => {
-                bend_middle_offset2 = prop.float;
+                // GPIF provides middle_offset2, but it's not used in GP5's 3-point bend model
             }
             "BendDestinationOffset" => {
                 bend_dest_offset = prop.float;
@@ -907,7 +903,6 @@ fn convert_note(
                 dest,
                 bend_origin_offset,
                 bend_middle_offset1,
-                bend_middle_offset2,
                 bend_dest_offset,
             ));
         }

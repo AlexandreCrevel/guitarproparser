@@ -119,7 +119,7 @@ pub enum FermataType {
 }
 
 /// A fermata annotation on a measure, with its beat position.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MeasureFermata {
     pub fermata_type: FermataType,
     /// Beat position as a fraction (numerator, denominator). E.g. (0, 1) for beat 0, (1, 1) for beat 1.
