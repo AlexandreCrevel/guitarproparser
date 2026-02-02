@@ -5,7 +5,7 @@ use crate::model::{
     beat::{Beat as SongBeat, Voice as SongVoice},
     effects::*,
     enums::*,
-    headers::{Marker, MeasureHeader},
+    headers::{FermataType, Marker, MeasureFermata, MeasureHeader},
     key_signature::*,
     measure::Measure,
     mix_table::*,
@@ -35,6 +35,18 @@ fn note_value_to_duration(s: &str) -> u16 {
         "64th" => 64,
         "128th" => 128,
         _ => 4,
+    }
+}
+
+/// Convert GPIF grace note rhythm NoteValue to the in-memory grace duration value.
+/// The in-memory representation matches standard note values: 16 = sixteenth, 32 = thirty-second, 64 = sixty-fourth.
+/// (The GP5 binary format stores these as `1 << (7 - byte)`, so byte 3 = 16th, byte 2 = 32nd, byte 1 = 64th.)
+fn grace_note_value_to_duration(s: &str) -> u8 {
+    match s {
+        "16th" => 16,
+        "32nd" => 32,
+        "64th" => 64,
+        _ => 16, // Default to sixteenth for unrecognized values (Whole/Half/Quarter/Eighth are not standard for grace notes)
     }
 }
 
@@ -137,8 +149,19 @@ fn parse_direction_sign(s: &str) -> Option<DirectionSign> {
     }
 }
 
-/// Build bend effect from GPIF origin/destination values (float, in 1/100 semitone).
-fn build_bend_effect(origin: f64, destination: f64) -> BendEffect {
+/// Build bend effect from GPIF origin/middle/destination values (float, in 1/100 semitone).
+/// When middle value and offsets are provided, uses them for a more accurate 3-point curve.
+///
+/// Note: GPIF provides a `middle_offset2` parameter, but it's not used here because
+/// the GP5 bend model uses a simple 3-point curve with a single middle position.
+fn build_bend_effect_full(
+    origin: f64,
+    middle: Option<f64>,
+    destination: f64,
+    origin_offset: Option<f64>,
+    middle_offset1: Option<f64>,
+    destination_offset: Option<f64>,
+) -> BendEffect {
     let mut bend = BendEffect::default();
     let origin_val = (origin / GP_BEND_SEMITONE as f64).round() as i8;
     let dest_val = (destination / GP_BEND_SEMITONE as f64).round() as i8;
@@ -158,22 +181,55 @@ fn build_bend_effect(origin: f64, destination: f64) -> BendEffect {
     }
 
     bend.value = (destination.max(origin) / GP_BEND_SEMITONE as f64 * 2.0).round() as i16;
+
+    // Compute positions (0-12 range). GPIF offsets are percentages (0-100).
+    let p0 = origin_offset
+        .map(|o| (o / 100.0 * BEND_EFFECT_MAX_POSITION as f64).round() as u8)
+        .unwrap_or(0);
+    let p2 = destination_offset
+        .map(|o| (o / 100.0 * BEND_EFFECT_MAX_POSITION as f64).round() as u8)
+        .unwrap_or(BEND_EFFECT_MAX_POSITION);
+
+    let mid_val = middle
+        .map(|m| (m / GP_BEND_SEMITONE as f64).round() as i8)
+        .unwrap_or(((origin_val as i16 + dest_val as i16) / 2) as i8);
+    let p1 = middle_offset1
+        .map(|o| (o / 100.0 * BEND_EFFECT_MAX_POSITION as f64).round() as u8)
+        .unwrap_or(BEND_EFFECT_MAX_POSITION / 2);
+
     bend.points.push(BendPoint {
-        position: 0,
+        position: p0,
         value: origin_val,
         vibrato: false,
     });
     bend.points.push(BendPoint {
-        position: 6,
-        value: ((origin_val as i16 + dest_val as i16) / 2) as i8,
+        position: p1,
+        value: mid_val,
         vibrato: false,
     });
     bend.points.push(BendPoint {
-        position: 12,
+        position: p2,
         value: dest_val,
         vibrato: false,
     });
     bend
+}
+
+/// Build bend effect from simple origin/destination values (backwards compatible).
+fn build_bend_effect(origin: f64, destination: f64) -> BendEffect {
+    build_bend_effect_full(origin, None, destination, None, None, None)
+}
+
+/// Build a whammy bar bend effect from GPIF Whammy element attributes.
+fn build_whammy_effect(w: &WhammyInfo) -> BendEffect {
+    build_bend_effect_full(
+        w.origin_value.unwrap_or(0.0),
+        w.middle_value,
+        w.destination_value.unwrap_or(0.0),
+        w.origin_offset,
+        w.middle_offset1,
+        w.destination_offset,
+    )
 }
 
 /// Extract tuning pitches from a property list.
@@ -196,12 +252,68 @@ fn extract_tuning(properties: &[Property]) -> Vec<(i8, i8)> {
     Vec::new()
 }
 
+/// Parse GPIF fingering string to Fingering enum.
+fn parse_fingering(s: &str) -> Fingering {
+    match s {
+        "Open" => Fingering::Open,
+        "P" => Fingering::Thumb,
+        "I" => Fingering::Index,
+        "M" => Fingering::Middle,
+        "A" => Fingering::Annular,
+        "C" => Fingering::Little,
+        _ => Fingering::Open,
+    }
+}
+
+/// Parse GPIF fermata type string to FermataType enum.
+fn parse_fermata_type(s: &str) -> FermataType {
+    match s {
+        "Short" => FermataType::Short,
+        "Long" => FermataType::Long,
+        _ => FermataType::Medium,
+    }
+}
+
+/// Parse a fraction string like "0/1" or "2/1" into a (numerator, denominator) tuple.
+fn parse_fraction_offset(s: &str) -> (i32, i32) {
+    let parts: Vec<&str> = s.split('/').collect();
+    if parts.len() == 2 {
+        let num = parts[0].parse::<i32>().unwrap_or(0);
+        let den = parts[1].parse::<i32>().unwrap_or(1).max(1);
+        (num, den)
+    } else {
+        (0, 1)
+    }
+}
+
+/// Parse GPIF version string (e.g. "7") into a version tuple.
+/// Falls back to the provided default if parsing fails.
+fn parse_gpif_version(gpif: &Gpif, default: (u8, u8, u8)) -> (u8, u8, u8) {
+    if let Some(ver_str) = &gpif.version {
+        let parts: Vec<u8> = ver_str
+            .split('.')
+            .filter_map(|s| s.parse::<u8>().ok())
+            .collect();
+        return match parts.len() {
+            1 => (parts[0], 0, 0),
+            2 => (parts[0], parts[1], 0),
+            3.. => (parts[0], parts[1], parts[2]),
+            _ => default,
+        };
+    }
+    default
+}
+
 // ---------------------------------------------------------------------------
 // Main conversion
 // ---------------------------------------------------------------------------
 
 impl SongGpifOps for Song {
     fn read_gpif(&mut self, gpif: &Gpif) {
+        // 0. Version
+        let default_version = self.version.number;
+        self.version.number = parse_gpif_version(gpif, default_version);
+
         // 1. Metadata
         self.name = gpif.score.title.clone();
         self.subtitle = gpif.score.sub_title.clone();
@@ -327,9 +439,14 @@ impl SongGpifOps for Song {
             // Fermatas
             if let Some(fermatas_w) = &mb.fermatas {
                 for f in &fermatas_w.fermatas {
-                    let ftype = f.fermata_type.as_deref().unwrap_or("Medium").to_string();
-                    let offset = f.offset.as_deref().unwrap_or("").to_string();
-                    mh.fermatas.push((ftype, offset));
+                    let ftype = parse_fermata_type(
+                        f.fermata_type.as_deref().unwrap_or("Medium"),
+                    );
+                    let offset = parse_fraction_offset(f.offset.as_deref().unwrap_or("0/1"));
+                    mh.fermatas.push(MeasureFermata {
+                        fermata_type: ftype,
+                        offset,
+                    });
                 }
             }
 
@@ -498,6 +615,7 @@ fn convert_beat(
     let mut s_beat = SongBeat::default();
 
     // Duration from Rhythm
+    let mut grace_duration: u8 = 1;
     if let Some(rhythm_ref) = &g_beat.rhythm {
         if let Some(rhythm) = rhythms_map.get(&rhythm_ref.r#ref) {
             s_beat.duration.value = note_value_to_duration(&rhythm.note_value);
@@ -511,6 +629,10 @@ fn convert_beat(
             if let Some(tuplet) = &rhythm.primary_tuplet {
                 s_beat.duration.tuplet_enters = tuplet.num as u8;
                 s_beat.duration.tuplet_times = tuplet.den as u8;
+            }
+            // If this is a grace beat, derive grace duration from the rhythm's note value
+            if g_beat.grace_notes.is_some() {
+                grace_duration = grace_note_value_to_duration(&rhythm.note_value);
             }
         }
     }
@@ -539,22 +661,51 @@ fn convert_beat(
     // Wah effect
     if let Some(wah_str) = &g_beat.wah {
         if wah_str == "Open" {
-            let mut mtc = MixTableChange::default();
-            mtc.wah = Some(WahEffect {
-                value: 100, // Fully open
-                display: true,
+            s_beat.effect.mix_table_change = Some(MixTableChange {
+                wah: Some(WahEffect {
+                    value: 100, // Fully open
+                    display: true,
+                }),
+                ..Default::default()
             });
-            s_beat.effect.mix_table_change = Some(mtc);
         }
     }
 
-    // Tremolo bar
+    // Tremolo bar (simple)
     if let Some(tremolo_str) = &g_beat.tremolo {
         if let Ok(val) = tremolo_str.parse::<f64>() {
             if val != 0.0 {
                 s_beat.effect.tremolo_bar = Some(build_bend_effect(0.0, val));
             }
         }
+    }
+
+    // Whammy bar (detailed, with middle value and offsets)
+    if let Some(whammy) = &g_beat.whammy {
+        s_beat.effect.tremolo_bar = Some(build_whammy_effect(whammy));
+    }
+
+    // Arpeggio
+    if let Some(arp) = &g_beat.arpeggio {
+        s_beat.effect.stroke.direction = match arp.as_str() {
+            "Down" => BeatStrokeDirection::Down,
+            "Up" => BeatStrokeDirection::Up,
+            _ => BeatStrokeDirection::None,
+        };
+        if s_beat.effect.stroke.direction != BeatStrokeDirection::None {
+            s_beat.effect.stroke.value = DURATION_EIGHTH as u16;
+        }
+    }
+
+    // Ottavia (octave effects)
+    if let Some(ott) = &g_beat.ottavia {
+        s_beat.octave = match ott.as_str() {
+            "8va" => Octave::Ottava,
+            "8vb" => Octave::OttavaBassa,
+            "15ma" => Octave::Quindicesima,
+            "15mb" => Octave::QuindicesimaBassa,
+            _ => Octave::None,
+        };
     }
 
     // Beat properties
@@ -583,6 +734,28 @@ fn convert_beat(
                         };
                     }
                 }
+                "Slapped" => {
+                    if bp.enable.is_some() {
+                        s_beat.effect.slap_effect = SlapEffect::Slapping;
+                    }
+                }
+                "Popped" => {
+                    if bp.enable.is_some() {
+                        s_beat.effect.slap_effect = SlapEffect::Popping;
+                    }
+                }
+                "VibratoWTremBar" => {
+                    s_beat.effect.vibrato = true;
+                }
+                "WhammyBar" => {
+                    if s_beat.effect.tremolo_bar.is_none() {
+                        if let Some(val) = bp.float {
+                            if val != 0.0 {
+                                s_beat.effect.tremolo_bar = Some(build_bend_effect(0.0, val));
+                            }
+                        }
+                    }
+                }
                 _ => {}
             }
         }
@@ -600,9 +773,24 @@ fn convert_beat(
 
             for &nid in &note_ids {
                 if let Some(g_note) = notes_map.get(&nid) {
-                    let s_note =
-                        convert_note(g_note, *current_velocity, is_grace_beat, grace_on_beat);
+                    let s_note = convert_note(
+                        g_note,
+                        *current_velocity,
+                        is_grace_beat,
+                        grace_on_beat,
+                        grace_duration,
+                    );
                     s_beat.notes.push(s_note);
+
+                    // Tap technique is a beat-level effect (SlapEffect::Tapping)
+                    if s_beat.effect.slap_effect == SlapEffect::None {
+                        for prop in &g_note.properties.properties {
+                            if prop.name == "Tapped" && prop.enable.is_some() {
+                                s_beat.effect.slap_effect = SlapEffect::Tapping;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -619,6 +807,7 @@ fn convert_note(
     velocity: i16,
     is_grace_beat: bool,
     grace_on_beat: bool,
+    grace_duration: u8,
 ) -> SongNote {
     let mut s_note = SongNote {
         velocity,
@@ -628,6 +817,10 @@ fn convert_note(
 
     let mut bend_origin: Option<f64> = None;
     let mut bend_dest: Option<f64> = None;
+    let mut bend_middle: Option<f64> = None;
+    let mut bend_origin_offset: Option<f64> = None;
+    let mut bend_middle_offset1: Option<f64> = None;
+    let mut bend_dest_offset: Option<f64> = None;
 
     for prop in &g_note.properties.properties {
         match prop.name.as_str() {
@@ -651,6 +844,21 @@ fn convert_note(
             }
             "BendDestinationValue" => {
                 bend_dest = prop.float;
+            }
+            "BendMiddleValue" => {
+                bend_middle = prop.float;
+            }
+            "BendOriginOffset" => {
+                bend_origin_offset = prop.float;
+            }
+            "BendMiddleOffset1" => {
+                bend_middle_offset1 = prop.float;
+            }
+            "BendMiddleOffset2" => {
+                // GPIF provides middle_offset2, but it's not used in GP5's 3-point bend model
+            }
+            "BendDestinationOffset" => {
+                bend_dest_offset = prop.float;
             }
             "Slide" => {
                 if let Some(flags) = prop.flags {
@@ -679,14 +887,24 @@ fn convert_note(
                     s_note.kind = NoteType::Dead;
                 }
             }
+            // Note: "Tapped" (tap technique) is a beat-level effect (SlapEffect::Tapping),
+            // handled in convert_beat after note processing.
+            "Tapped" => {}
             _ => {}
         }
     }
 
-    // Bend
+    // Bend (with optional middle value and offsets for improved accuracy)
     if let (Some(orig), Some(dest)) = (bend_origin, bend_dest) {
         if orig != 0.0 || dest != 0.0 {
-            s_note.effect.bend = Some(build_bend_effect(orig, dest));
+            s_note.effect.bend = Some(build_bend_effect_full(
+                orig,
+                bend_middle,
+                dest,
+                bend_origin_offset,
+                bend_middle_offset1,
+                bend_dest_offset,
+            ));
         }
     }
 
@@ -738,12 +956,20 @@ fn convert_note(
         });
     }
 
+    // Fingering
+    if let Some(lf) = &g_note.left_fingering {
+        s_note.effect.left_hand_finger = parse_fingering(lf);
+    }
+    if let Some(rf) = &g_note.right_fingering {
+        s_note.effect.right_hand_finger = parse_fingering(rf);
+    }
+
     // Grace note
     if is_grace_beat {
         s_note.effect.grace = Some(GraceEffect {
             fret: s_note.value as i8,
             velocity: s_note.velocity,
-            duration: 1,
+            duration: grace_duration,
             is_dead: s_note.kind == NoteType::Dead,
             is_on_beat: grace_on_beat,
             transition: if s_note.effect.hammer {

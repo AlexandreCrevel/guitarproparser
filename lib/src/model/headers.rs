@@ -55,7 +55,7 @@ pub struct MeasureHeader {
     pub key_signature: KeySignature,
     pub double_bar: bool,
     /// Fermatas from GPIF (GP6/GP7)
-    pub fermatas: Vec<(String, String)>,
+    pub fermatas: Vec<MeasureFermata>,
     /// Free time (no metronome) from GPIF (GP6/GP7)
     pub free_time: bool,
 }
@@ -110,6 +110,22 @@ impl Default for Marker {
         }
     }
 }
+/// Type of fermata hold.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FermataType {
+    Short,
+    Medium,
+    Long,
+}
+
+/// A fermata annotation on a measure, with its beat position.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MeasureFermata {
+    pub fermata_type: FermataType,
+    /// Beat position as a fraction (numerator, denominator). E.g. (0, 1) for beat 0, (1, 1) for beat 1.
+    pub offset: (i32, i32),
+}
+
 /// Read a marker. The markers are written in two steps:
 /// - first is written an integer equal to the marker's name length + 1
 /// - then a string containing the marker's name. Finally the marker's color is written.

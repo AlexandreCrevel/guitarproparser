@@ -313,6 +313,8 @@ pub struct Fermata {
     pub fermata_type: Option<String>,
     #[serde(rename = "Offset", default)]
     pub offset: Option<String>,
+    #[serde(rename = "Length", default)]
+    pub length: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -386,8 +388,32 @@ pub struct Beat {
     pub wah: Option<String>,
     #[serde(rename = "FreeText", default)]
     pub free_text: Option<String>,
+    #[serde(rename = "Arpeggio", default)]
+    pub arpeggio: Option<String>,
+    #[serde(rename = "Ottavia", default)]
+    pub ottavia: Option<String>,
+    #[serde(rename = "Whammy", default)]
+    pub whammy: Option<WhammyInfo>,
     #[serde(rename = "Properties", default)]
     pub properties: Option<BeatPropertiesWrapper>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct WhammyInfo {
+    #[serde(rename = "@originValue", default)]
+    pub origin_value: Option<f64>,
+    #[serde(rename = "@middleValue", default)]
+    pub middle_value: Option<f64>,
+    #[serde(rename = "@destinationValue", default)]
+    pub destination_value: Option<f64>,
+    #[serde(rename = "@originOffset", default)]
+    pub origin_offset: Option<f64>,
+    #[serde(rename = "@middleOffset1", default)]
+    pub middle_offset1: Option<f64>,
+    #[serde(rename = "@middleOffset2", default)]
+    pub middle_offset2: Option<f64>,
+    #[serde(rename = "@destinationOffset", default)]
+    pub destination_offset: Option<f64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -408,6 +434,8 @@ pub struct BeatProperty {
     pub float: Option<f64>,
     #[serde(rename = "Flags", default)]
     pub flags: Option<i32>,
+    #[serde(rename = "Strength", default)]
+    pub strength: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -446,6 +474,10 @@ pub struct Note {
     pub trill: Option<i32>,
     #[serde(rename = "Ornament", default)]
     pub ornament: Option<String>,
+    #[serde(rename = "LeftFingering", default)]
+    pub left_fingering: Option<String>,
+    #[serde(rename = "RightFingering", default)]
+    pub right_fingering: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
