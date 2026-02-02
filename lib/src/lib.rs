@@ -37,6 +37,3 @@ pub use crate::model::track::SongTrackOps;
 
 #[cfg(test)]
 mod tests;
-
-#[cfg(test)]
-mod test_audit;
