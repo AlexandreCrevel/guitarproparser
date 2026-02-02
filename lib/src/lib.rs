@@ -2,6 +2,8 @@ pub mod audio;
 pub mod error;
 pub mod io;
 pub mod model;
+pub mod types;
+pub mod traits;
 
 // Re-export error types
 pub use crate::error::{GpError, GpResult};
