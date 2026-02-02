@@ -1462,10 +1462,12 @@ fn test_gp7_grace() {
         .filter_map(|n| n.effect.grace.as_ref())
         .collect();
     assert!(!graces.is_empty(), "grace.gp should contain at least one grace note");
-    // Grace duration should be derived from rhythm (32nd in this file → 2)
+    // Grace duration should be derived from rhythm NoteValue.
+    // In-memory values: 16 = sixteenth, 32 = thirty-second, 64 = sixty-fourth.
     assert!(
-        graces.iter().any(|g| g.duration > 0),
-        "grace note duration should be set from rhythm"
+        graces.iter().all(|g| g.duration == 16 || g.duration == 32 || g.duration == 64),
+        "grace note duration should be a valid note value (16, 32, or 64), got: {:?}",
+        graces.iter().map(|g| g.duration).collect::<Vec<_>>()
     );
 }
 #[test]
@@ -1777,7 +1779,7 @@ fn test_gp7_fermata() {
         .next()
         .expect("should have a fermata");
     assert_eq!(first_fermata.fermata_type, FermataType::Medium);
-    assert!(!first_fermata.offset.is_empty(), "fermata offset should be set");
+    assert_ne!(first_fermata.offset.1, 0, "fermata offset denominator should not be zero");
 }
 #[test]
 fn test_gp7_free_time() {

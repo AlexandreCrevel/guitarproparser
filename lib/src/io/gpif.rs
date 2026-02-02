@@ -401,19 +401,19 @@ pub struct Beat {
 #[derive(Debug, Deserialize)]
 pub struct WhammyInfo {
     #[serde(rename = "@originValue", default)]
-    pub origin_value: f64,
+    pub origin_value: Option<f64>,
     #[serde(rename = "@middleValue", default)]
-    pub middle_value: f64,
+    pub middle_value: Option<f64>,
     #[serde(rename = "@destinationValue", default)]
-    pub destination_value: f64,
+    pub destination_value: Option<f64>,
     #[serde(rename = "@originOffset", default)]
-    pub origin_offset: f64,
+    pub origin_offset: Option<f64>,
     #[serde(rename = "@middleOffset1", default)]
-    pub middle_offset1: f64,
+    pub middle_offset1: Option<f64>,
     #[serde(rename = "@middleOffset2", default)]
-    pub middle_offset2: f64,
+    pub middle_offset2: Option<f64>,
     #[serde(rename = "@destinationOffset", default)]
-    pub destination_offset: f64,
+    pub destination_offset: Option<f64>,
 }
 
 #[derive(Debug, Deserialize)]

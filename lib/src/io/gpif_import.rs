@@ -38,14 +38,15 @@ fn note_value_to_duration(s: &str) -> u16 {
     }
 }
 
-/// Convert GPIF grace note rhythm NoteValue to GP5-compatible grace duration.
-/// GP5 encodes grace duration as: 1 = sixteenth, 2 = twenty-fourth, 3 = thirty-second.
+/// Convert GPIF grace note rhythm NoteValue to the in-memory grace duration value.
+/// The in-memory representation matches standard note values: 16 = sixteenth, 32 = thirty-second, 64 = sixty-fourth.
+/// (The GP5 binary format stores these as `1 << (7 - byte)`, so byte 3 = 16th, byte 2 = 32nd, byte 1 = 64th.)
 fn grace_note_value_to_duration(s: &str) -> u8 {
     match s {
-        "16th" => 1,
-        "32nd" => 2,
-        "64th" => 3,
-        _ => 1,
+        "16th" => 16,
+        "32nd" => 32,
+        "64th" => 64,
+        _ => 16,
     }
 }
 
@@ -150,6 +151,9 @@ fn parse_direction_sign(s: &str) -> Option<DirectionSign> {
 
 /// Build bend effect from GPIF origin/middle/destination values (float, in 1/100 semitone).
 /// When middle value and offsets are provided, uses them for a more accurate 3-point curve.
+///
+/// Note: `middle_offset2` is accepted for completeness (GPIF provides it) but not used,
+/// because the GP5 bend model uses a simple 3-point curve with a single middle position.
 fn build_bend_effect_full(
     origin: f64,
     middle: Option<f64>,
@@ -220,13 +224,13 @@ fn build_bend_effect(origin: f64, destination: f64) -> BendEffect {
 /// Build a whammy bar bend effect from GPIF Whammy element attributes.
 fn build_whammy_effect(w: &WhammyInfo) -> BendEffect {
     build_bend_effect_full(
-        w.origin_value,
-        Some(w.middle_value),
-        w.destination_value,
-        Some(w.origin_offset),
-        Some(w.middle_offset1),
-        Some(w.middle_offset2),
-        Some(w.destination_offset),
+        w.origin_value.unwrap_or(0.0),
+        w.middle_value,
+        w.destination_value.unwrap_or(0.0),
+        w.origin_offset,
+        w.middle_offset1,
+        w.middle_offset2,
+        w.destination_offset,
     )
 }
 
@@ -272,6 +276,18 @@ fn parse_fermata_type(s: &str) -> FermataType {
     }
 }
 
+/// Parse a fraction string like "0/1" or "2/1" into a (numerator, denominator) tuple.
+fn parse_fraction_offset(s: &str) -> (i32, i32) {
+    let parts: Vec<&str> = s.split('/').collect();
+    if parts.len() == 2 {
+        let num = parts[0].parse::<i32>().unwrap_or(0);
+        let den = parts[1].parse::<i32>().unwrap_or(1);
+        (num, if den == 0 { 1 } else { den })
+    } else {
+        (0, 1)
+    }
+}
+
 /// Parse GPIF version string (e.g. "7") into a version tuple.
 /// Falls back to the provided default if parsing fails.
 fn parse_gpif_version(gpif: &Gpif, default: (u8, u8, u8)) -> (u8, u8, u8) {
@@ -283,7 +299,8 @@ fn parse_gpif_version(gpif: &Gpif, default: (u8, u8, u8)) -> (u8, u8, u8) {
         return match parts.len() {
             1 => (parts[0], 0, 0),
             2 => (parts[0], parts[1], 0),
-            3.. => (parts[0], parts[1], parts[2]),
+            3 => (parts[0], parts[1], parts[2]),
+            _ if parts.len() > 3 => (parts[0], parts[1], parts[2]),
             _ => default,
         };
     }
@@ -428,7 +445,7 @@ impl SongGpifOps for Song {
                     let ftype = parse_fermata_type(
                         f.fermata_type.as_deref().unwrap_or("Medium"),
                     );
-                    let offset = f.offset.as_deref().unwrap_or("").to_string();
+                    let offset = parse_fraction_offset(f.offset.as_deref().unwrap_or("0/1"));
                     mh.fermatas.push(MeasureFermata {
                         fermata_type: ftype,
                         offset,
@@ -734,9 +751,11 @@ fn convert_beat(
                     s_beat.effect.vibrato = true;
                 }
                 "WhammyBar" => {
-                    if let Some(val) = bp.float {
-                        if val != 0.0 {
-                            s_beat.effect.tremolo_bar = Some(build_bend_effect(0.0, val));
+                    if s_beat.effect.tremolo_bar.is_none() {
+                        if let Some(val) = bp.float {
+                            if val != 0.0 {
+                                s_beat.effect.tremolo_bar = Some(build_bend_effect(0.0, val));
+                            }
                         }
                     }
                 }
@@ -765,6 +784,16 @@ fn convert_beat(
                         grace_duration,
                     );
                     s_beat.notes.push(s_note);
+
+                    // Tap technique is a beat-level effect (SlapEffect::Tapping)
+                    if s_beat.effect.slap_effect == SlapEffect::None {
+                        for prop in &g_note.properties.properties {
+                            if prop.name == "Tapped" && prop.enable.is_some() {
+                                s_beat.effect.slap_effect = SlapEffect::Tapping;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -862,14 +891,9 @@ fn convert_note(
                     s_note.kind = NoteType::Dead;
                 }
             }
-            "Tapped" => {
-                if prop.enable.is_some() {
-                    s_note.effect.harmonic = Some(HarmonicEffect {
-                        kind: HarmonicType::Tapped,
-                        ..Default::default()
-                    });
-                }
-            }
+            // Note: "Tapped" (tap technique) is a beat-level effect (SlapEffect::Tapping),
+            // handled in convert_beat after note processing.
+            "Tapped" => {}
             _ => {}
         }
     }

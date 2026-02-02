@@ -122,8 +122,8 @@ pub enum FermataType {
 #[derive(Debug, Clone)]
 pub struct MeasureFermata {
     pub fermata_type: FermataType,
-    /// Beat position as a fraction string (e.g. "0/1", "1/1", "2/1").
-    pub offset: String,
+    /// Beat position as a fraction (numerator, denominator). E.g. (0, 1) for beat 0, (1, 1) for beat 1.
+    pub offset: (i32, i32),
 }
 
 /// Read a marker. The markers are written in two steps:
