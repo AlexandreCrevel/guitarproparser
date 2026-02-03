@@ -1,0 +1,26 @@
+// GP4 tests
+
+pub mod capo_fret;
+pub mod chord;
+pub mod copyright;
+pub mod effects;
+pub mod fade_in;
+pub mod fingering;
+pub mod fret_diagram;
+pub mod harmonics;
+pub mod irr_tuplet;
+pub mod key;
+pub mod keysig;
+pub mod let_ring;
+pub mod palm_mute;
+pub mod pick_up_down;
+pub mod repeat;
+pub mod rest_centered;
+pub mod sforzato;
+pub mod slides;
+pub mod slurs;
+pub mod strokes;
+pub mod tempo;
+pub mod trill;
+pub mod vibrato;
+pub mod volta;

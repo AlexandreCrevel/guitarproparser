@@ -128,7 +128,7 @@ pub(crate) fn read_double(data: &[u8], seek: &mut usize) -> GpResult<f64> {
 pub(crate) fn read_int_size_string(data: &[u8], seek: &mut usize) -> GpResult<String> {
     let size = read_int(data, seek)?
         .to_usize()
-        .ok_or_else(|| GpError::InvalidValue {
+        .ok_or(GpError::InvalidValue {
             context: "string length",
             value: 0,
         })?; // We don't have the original value easily here, but it was negative
@@ -141,7 +141,7 @@ pub(crate) fn read_int_byte_size_string(data: &[u8], seek: &mut usize) -> GpResu
     if val <= 0 {
         return Ok(String::new());
     }
-    let s = (val - 1).to_usize().ok_or_else(|| GpError::InvalidValue {
+    let s = (val - 1).to_usize().ok_or(GpError::InvalidValue {
         context: "string length",
         value: val as i64,
     })?;
