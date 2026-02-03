@@ -1,8 +1,6 @@
 // GP7 fingering tests
-use crate::model::song::Song;
-use crate::*;
-use super::super::{read_gp7, read_file};
-
+use super::super::{read_gp7};
+use crate::types::enums::Fingering;
 
 #[test]
 fn test_gp7_fingering() {
@@ -12,7 +10,9 @@ fn test_gp7_fingering() {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
                 v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.left_hand_finger != Fingering::Open)
+                    b.notes
+                        .iter()
+                        .any(|n| n.effect.left_hand_finger != Fingering::Open)
                 })
             })
         })
@@ -21,7 +21,9 @@ fn test_gp7_fingering() {
         t.measures.iter().any(|m| {
             m.voices.iter().any(|v| {
                 v.beats.iter().any(|b| {
-                    b.notes.iter().any(|n| n.effect.right_hand_finger != Fingering::Open)
+                    b.notes
+                        .iter()
+                        .any(|n| n.effect.right_hand_finger != Fingering::Open)
                 })
             })
         })
@@ -31,4 +33,3 @@ fn test_gp7_fingering() {
         "fingering.gp should contain fingering annotations"
     );
 }
-

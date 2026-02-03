@@ -1,5 +1,5 @@
 use crate::error::GpResult;
-use crate::io::gpif::Gpif;
+use crate::io::gpif::model::Gpif;
 use quick_xml::de::from_str;
 use std::io::{Cursor, Read};
 use zip::ZipArchive;

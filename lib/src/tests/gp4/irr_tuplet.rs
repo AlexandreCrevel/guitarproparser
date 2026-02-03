@@ -1,6 +1,5 @@
 // GP4 irr_tuplet tests
 use crate::model::song::Song;
-use crate::*;
 use super::super::read_file;
 
 #[test]

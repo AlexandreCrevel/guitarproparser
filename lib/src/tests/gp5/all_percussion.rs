@@ -1,6 +1,5 @@
 // GP5 all_percussion tests
 use crate::model::song::Song;
-use crate::*;
 use super::super::read_file;
 
 #[test]

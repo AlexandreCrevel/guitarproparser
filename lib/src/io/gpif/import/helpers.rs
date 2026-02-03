@@ -1,5 +1,5 @@
 // GPIF import helper functions
-use crate::io::gpif::{Gpif, Property};
+use crate::io::gpif::model::{Gpif, Property};
 use crate::model::effects::{HarmonicEffect, FORTE, MIN_VELOCITY, VELOCITY_INCREMENT};
 use crate::model::enums::*;
 use crate::model::headers::FermataType;

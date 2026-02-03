@@ -1,6 +1,5 @@
 // GP5 pick_up_down tests
 use crate::model::song::Song;
-use crate::*;
 use super::super::read_file;
 
 #[test]

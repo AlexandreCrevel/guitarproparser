@@ -1,5 +1,5 @@
-use crate::model::song::Song;
 use crate::tests::read_file;
+use crate::model::song::Song;
 
 #[test]
 fn test_gp4_key() {

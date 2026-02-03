@@ -1,4 +1,5 @@
 // Tests module - Organized by Guitar Pro version
+use crate::model::song::Song;
 use fraction::ToPrimitive;
 use std::{fs, io::Read};
 
@@ -35,7 +36,6 @@ pub fn read_file(path: String) -> Vec<u8> {
 
 /// Helper function to read GPX files
 pub fn read_gpx(filename: &str) -> crate::model::song::Song {
-    use crate::model::song::Song;
     let mut song = Song::default();
     song.read_gpx(&read_file(String::from(filename))).unwrap();
     song
@@ -43,7 +43,6 @@ pub fn read_gpx(filename: &str) -> crate::model::song::Song {
 
 /// Helper function to read GP7 files
 pub fn read_gp7(filename: &str) -> crate::model::song::Song {
-    use crate::model::song::Song;
     let mut song = Song::default();
     song.read_gp(&read_file(String::from(filename))).unwrap();
     song

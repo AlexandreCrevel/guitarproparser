@@ -1,7 +1,5 @@
 // GPX beams_stems_ledger_lines tests
-use crate::model::song::Song;
-use crate::*;
-use super::super::{read_gpx, read_file};
+use super::super::{read_gpx};
 
 
 #[test]

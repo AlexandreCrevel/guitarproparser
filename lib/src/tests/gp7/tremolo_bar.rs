@@ -1,7 +1,5 @@
 // GP7 tremolo_bar tests
-use crate::model::song::Song;
-use crate::*;
-use super::super::{read_gp7, read_file};
+use super::super::{read_gp7};
 
 
 #[test]

@@ -1,11 +1,11 @@
 // GPIF note conversion
-use crate::io::gpif::Note;
+use super::bend::build_bend_effect_full;
+use super::helpers::*;
+use crate::io::gpif::model::Note;
 use crate::model::effects::*;
 use crate::model::enums::*;
 use crate::model::key_signature::Duration;
 use crate::model::note::Note as SongNote;
-use super::helpers::*;
-use super::bend::build_bend_effect_full;
 
 pub(crate) fn convert_note(
     g_note: &Note,

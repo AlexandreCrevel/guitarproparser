@@ -1,6 +1,6 @@
 // GPIF bend effect builders
-use crate::io::gpif::WhammyInfo;
-use crate::model::effects::{BendEffect, BendPoint, GP_BEND_SEMITONE, BEND_EFFECT_MAX_POSITION};
+use crate::io::gpif::model::WhammyInfo;
+use crate::model::effects::{BendEffect, BendPoint, BEND_EFFECT_MAX_POSITION, GP_BEND_SEMITONE};
 use crate::model::enums::BendType;
 
 /// Build bend effect from GPIF origin/middle/destination values (float, in 1/100 semitone).

@@ -1,7 +1,5 @@
 // GPX free_time tests
-use crate::model::song::Song;
-use crate::*;
-use super::super::{read_gpx, read_file};
+use super::super::{read_gpx};
 
 
 #[test]

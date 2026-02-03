@@ -1,6 +1,5 @@
 // GP3 effects tests
 use crate::model::song::Song;
-use crate::*;
 use super::super::read_file;
 
 #[test]

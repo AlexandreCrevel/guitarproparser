@@ -1,6 +1,5 @@
 // GP4 rest_centered tests
 use crate::model::song::Song;
-use crate::*;
 use super::super::read_file;
 
 #[test]

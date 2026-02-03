@@ -1,8 +1,6 @@
 // GP7 arpeggio tests
-use crate::model::song::Song;
-use crate::*;
-use super::super::{read_gp7, read_file};
-
+use super::super::{read_gp7};
+use crate::types::enums::BeatStrokeDirection;
 
 #[test]
 fn test_gp7_arpeggio() {
@@ -17,6 +15,8 @@ fn test_gp7_arpeggio() {
             })
         })
     });
-    assert!(has_arpeggio, "arpeggio.gp should contain at least one arpeggio stroke");
+    assert!(
+        has_arpeggio,
+        "arpeggio.gp should contain at least one arpeggio stroke"
+    );
 }
-

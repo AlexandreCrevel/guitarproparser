@@ -1,6 +1,7 @@
 // GPIF Song conversion - Main implementation
-use std::collections::HashMap;
-use crate::io::gpif::*;
+use super::beat::convert_beat;
+use super::helpers::*;
+use crate::io::gpif::model::*;
 use crate::model::{
     beat::Voice as SongVoice,
     effects::*,
@@ -9,8 +10,7 @@ use crate::model::{
     song::*,
     track::Track as SongTrack,
 };
-use super::helpers::*;
-use super::beat::convert_beat;
+use std::collections::HashMap;
 
 pub trait SongGpifOps {
     fn read_gpif(&mut self, gpif: &Gpif);
@@ -147,9 +147,7 @@ impl SongGpifOps for Song {
             // Fermatas
             if let Some(fermatas_w) = &mb.fermatas {
                 for f in &fermatas_w.fermatas {
-                    let ftype = parse_fermata_type(
-                        f.fermata_type.as_deref().unwrap_or("Medium"),
-                    );
+                    let ftype = parse_fermata_type(f.fermata_type.as_deref().unwrap_or("Medium"));
                     let offset = parse_fraction_offset(f.offset.as_deref().unwrap_or("0/1"));
                     mh.fermatas.push(MeasureFermata {
                         fermata_type: ftype,
@@ -313,4 +311,3 @@ impl SongGpifOps for Song {
         }
     }
 }
-

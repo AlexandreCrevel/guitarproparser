@@ -1,8 +1,6 @@
 // GP7 tap_slap_pop tests
-use crate::model::song::Song;
-use crate::*;
-use super::super::{read_gp7, read_file};
-
+use super::super::{read_gp7};
+use crate::types::enums::SlapEffect;
 
 #[test]
 fn test_gp7_tap_slap_pop() {
@@ -22,4 +20,3 @@ fn test_gp7_tap_slap_pop() {
         "tap-slap-pop.gp should contain slap/pop/tap effects"
     );
 }
-

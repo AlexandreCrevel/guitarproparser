@@ -1,13 +1,13 @@
 // GPIF beat conversion
-use std::collections::HashMap;
-use crate::io::gpif::{Beat, Note, Rhythm};
+use super::bend::{build_bend_effect, build_whammy_effect};
+use super::helpers::*;
+use super::note::convert_note;
+use crate::io::gpif::model::{Beat, Note, Rhythm};
 use crate::model::beat::Beat as SongBeat;
 use crate::model::enums::*;
 use crate::model::key_signature::DURATION_EIGHTH;
 use crate::model::mix_table::{MixTableChange, WahEffect};
-use super::helpers::*;
-use super::note::convert_note;
-use super::bend::{build_bend_effect, build_whammy_effect};
+use std::collections::HashMap;
 
 pub(crate) fn convert_beat(
     g_beat: &Beat,
@@ -204,4 +204,3 @@ pub(crate) fn convert_beat(
 
     s_beat
 }
-
