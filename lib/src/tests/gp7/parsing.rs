@@ -1,7 +1,6 @@
 // GP7 parsing tests
-use crate::model::song::Song;
-use super::super::{read_gp7};
 
+use crate::model::song::Song;
 
 #[test]
 fn test_gp7_all_files_parse() {
@@ -53,4 +52,3 @@ fn test_gp7_all_files_parse() {
         failures.len()
     );
 }
-

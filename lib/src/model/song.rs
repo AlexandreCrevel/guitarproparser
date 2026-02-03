@@ -4,14 +4,19 @@ use crate::audio::midi::*;
 use crate::error::GpResult;
 use crate::io::gpif_import::*;
 use crate::io::primitive::*;
-use crate::model::enums::*;
-use crate::model::headers::*;
 use crate::model::key_signature::*;
 use crate::model::lyric::*;
-use crate::model::measure::*;
+use crate::model::measure::SongMeasureOps;
+
 use crate::model::page::*;
+use crate::model::rse::SongRseOps;
 use crate::model::rse::*;
+use crate::model::track::SongTrackOps;
 use crate::model::track::*;
+use crate::traits::header_ops::SongHeaderOps;
+use crate::types::enums::*;
+use crate::types::measure::MeasureHeader;
+use crate::types::song::*;
 
 // Struct utility to read file: https://stackoverflow.com/questions/55555538/what-is-the-correct-way-to-read-a-binary-file-in-chunks-of-a-fixed-size-and-stor
 #[derive(Debug, Clone)]

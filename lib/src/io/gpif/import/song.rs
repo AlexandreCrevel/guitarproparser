@@ -4,12 +4,12 @@ use super::helpers::*;
 use crate::io::gpif::model::*;
 use crate::model::{
     beat::Voice as SongVoice,
-    effects::*,
     headers::{Marker, MeasureFermata, MeasureHeader},
     measure::Measure,
     song::*,
     track::Track as SongTrack,
 };
+use crate::types::effects::*;
 use std::collections::HashMap;
 
 pub trait SongGpifOps {

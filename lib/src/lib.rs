@@ -2,8 +2,8 @@ pub mod audio;
 pub mod error;
 pub mod io;
 pub mod model;
-pub mod types;
 pub mod traits;
+pub mod types;
 
 // Re-export error types
 pub use crate::error::{GpError, GpResult};
@@ -11,7 +11,6 @@ pub use crate::error::{GpError, GpResult};
 // Re-export core types
 pub use crate::model::beat::{Beat, Voice};
 pub use crate::model::chord::Chord;
-pub use crate::model::enums::*;
 pub use crate::model::headers::MeasureHeader;
 pub use crate::model::key_signature::{KeySignature, TimeSignature};
 pub use crate::model::measure::Measure;
@@ -19,6 +18,7 @@ pub use crate::model::note::Note;
 pub use crate::model::page::PageSetup;
 pub use crate::model::song::Song;
 pub use crate::model::track::Track;
+pub use crate::types::enums::*;
 
 // Re-export traits for easy use
 pub use crate::audio::midi::SongMidiOps;

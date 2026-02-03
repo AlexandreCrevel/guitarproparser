@@ -1,6 +1,6 @@
 // Voice structure containing beats
+use super::Beat;
 use crate::types::enums::VoiceDirection;
-use super::beat::Beat;
 
 /// A voice contains multiple beats
 #[derive(Debug, Clone)]

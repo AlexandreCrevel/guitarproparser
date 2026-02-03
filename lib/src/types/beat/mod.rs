@@ -1,14 +1,14 @@
 // Beat module - Beat structure and related types
 
-pub mod beat;
-pub mod voice;
+mod core;
 pub mod display;
-pub mod stroke;
 pub mod effects;
+pub mod stroke;
+pub mod voice;
 
 // Re-export for convenience
-pub use beat::Beat;
-pub use voice::Voice;
+pub use core::Beat;
 pub use display::BeatDisplay;
-pub use stroke::BeatStroke;
 pub use effects::BeatEffects;
+pub use stroke::BeatStroke;
+pub use voice::Voice;

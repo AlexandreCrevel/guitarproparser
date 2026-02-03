@@ -1,8 +1,8 @@
 // Note module - Note structure and effects
 
-pub mod note;
+mod core;
 pub mod effects;
 
 // Re-export for convenience
-pub use note::Note;
+pub use core::Note;
 pub use effects::NoteEffect;

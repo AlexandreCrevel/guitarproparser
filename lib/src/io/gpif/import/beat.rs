@@ -4,9 +4,9 @@ use super::helpers::*;
 use super::note::convert_note;
 use crate::io::gpif::model::{Beat, Note, Rhythm};
 use crate::model::beat::Beat as SongBeat;
-use crate::model::enums::*;
 use crate::model::key_signature::DURATION_EIGHTH;
 use crate::model::mix_table::{MixTableChange, WahEffect};
+use crate::types::enums::*;
 use std::collections::HashMap;
 
 pub(crate) fn convert_beat(

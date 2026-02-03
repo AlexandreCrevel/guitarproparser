@@ -1,7 +1,5 @@
 // GPX parsing tests
 use crate::model::song::Song;
-use super::super::{read_gpx};
-
 
 #[test]
 fn test_gpx_all_files_parse() {
@@ -53,4 +51,3 @@ fn test_gpx_all_files_parse() {
         failures.len()
     );
 }
-

@@ -2,10 +2,10 @@
 use super::bend::build_bend_effect_full;
 use super::helpers::*;
 use crate::io::gpif::model::Note;
-use crate::model::effects::*;
-use crate::model::enums::*;
 use crate::model::key_signature::Duration;
 use crate::model::note::Note as SongNote;
+use crate::types::effects::*;
+use crate::types::enums::*;
 
 pub(crate) fn convert_note(
     g_note: &Note,
